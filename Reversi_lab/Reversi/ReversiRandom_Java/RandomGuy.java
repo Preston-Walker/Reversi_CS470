@@ -13,13 +13,13 @@ class RandomGuy {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
+    final int MAX_DEPTH = 3;
 
     public Socket s;
 	public BufferedReader sin;
 	public PrintWriter sout;
     Random generator = new Random();
 
-    int maxDepth = 3;
     double t1, t2;
     int me;
     int boardState;
@@ -81,31 +81,42 @@ class RandomGuy {
 
         // If it's after round 4, actually use a heuristic function to find the next move.
         else{
-            // Get the moves into a usable format.
+            // // Get the moves into a usable format.
+            // ArrayList<int[]> moves = new ArrayList<>();
+            // for (int i = 0; i < 8; i++) {
+            //     for (int j = 0; j < 8; j++) {
+            //         if (state[i][j] == 0) {
+            //             if (couldBe(state, i, j)) {
+            //                 // Each item in the array list has an x, y, and heuristic value (in that order)
+            //                 moves.add(new int[]{i,j,0});
+            //             }
+            //         }
+            //     }
+            // }
+
+            // System.out.println("Moves that I can see: ");
+            // // Find out how many tiles each move will flip
+            // for (int[] move: moves){
+            //     move[2] = HeuristicFuntion(me, move, );
+            //     System.out.println(Integer.toString(move[0]) + ", "+ Integer.toString(move[1]) + "   flips: " + move[2]);
+            // }
+            // int max = 0;
+
+            // // Pick the move that flips the most tiles
+            // for (int[] move: moves){
+            //     if (move[2] > max){
+            //         max = move[2];
+            //         myMove = moves.indexOf(move);
+            //     }
+            // }
+            int current_state[][] = state.clone();
             ArrayList<int[]> moves = new ArrayList<>();
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (state[i][j] == 0) {
-                        if (couldBe(state, i, j)) {
-                            // Each item in the array list has an x, y, and heuristic value (in that order)
-                            moves.add(new int[]{i,j,0});
-                        }
-                    }
-                }
-            }
+            moves = GetMovesFromState(current_state);
+            
+            ArrayList<Integer> values = Alpha_beta_recursive(NEG_INF, INF, true, MAX_DEPTH, current_state);
 
-            System.out.println("Moves that I can see: ");
-            // Find out how many tiles each move will flip
             for (int[] move: moves){
-                move[2] = HeuristicFuntion(me, move);
-                System.out.println(Integer.toString(move[0]) + ", "+ Integer.toString(move[1]) + "   flips: " + move[2]);
-            }
-            int max = 0;
-
-            // Pick the move that flips the most tiles
-            for (int[] move: moves){
-                if (move[2] > max){
-                    max = move[2];
+                if (move[0] == values.get(3) && move[1] == values.get(4)){
                     myMove = moves.indexOf(move);
                 }
             }
@@ -114,30 +125,56 @@ class RandomGuy {
         return myMove;
     }
 
-    private ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int i, int j){
-       ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, i, j));
-       // Base case 
-       if (maxDepth <= depth){
-            // all moves = all moves
-            if (alpha < beta){
+    private ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
+        // alpha, beta, value, i, j 
+        ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, 0, 0));
+        ArrayList<Integer> values;
+        int opponent;
+        if (me == 1){
+            opponent = 2;
+        }
+        else{
+            opponent = 1;
+        }
+        int value; 
+        ArrayList<int[]> possibleMoves = GetMovesFromState(current_state);
+        if (MAX_DEPTH <= depth){
+            for (int[] move : possibleMoves) {
                 if (maximize){
-                    values = Alpha_beta_recursive(alpha, beta, !maximize, depth++);
+                    value = HeuristicFuntion(me, move, current_state);
+                    if (value > bestMove.get(2)){
+                        bestMove = new ArrayList<Integer>(Arrays.asList(value, INF, value, move[0], move[1]));
+                    }
                 }
                 else{
-                    values = Alpha_beta_recursive(beta, alpha, !maximize, depth++);
+                    value = -HeuristicFuntion(opponent, move, current_state);
+                    if (value < bestMove.get(2)){
+                        bestMove = new ArrayList<Integer>(Arrays.asList(value, INF, value, move[0], move[1]));
+                    }
                 }
             }
-            return values;
         }
-        // Recursive case
         else{
-            // alpha first then beta
-            ArrayList<Integer> bestMoves = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF));
-            fr
+            for (int[] move : possibleMoves) {
+                int next_state[][] = current_state.clone();
+                if (maximize){
+                    next_state[move[0]][move[1]] = me;
+                    values = Alpha_beta_recursive(alpha, beta, !maximize, depth++, current_state);
+                    if (values.get(2) > bestMove.get(2)){
+                        bestMove = new ArrayList<Integer>(Arrays.asList(values.get(2), INF, values.get(2), move[0], move[1]));
+                    }
+                }
+                else{
+                    next_state[move[0]][move[1]] = opponent;
+                    values = Alpha_beta_recursive(beta, alpha, !maximize, depth++, current_state);
+                    if (values.get(2) < bestMove.get(2)){
+                        bestMove = new ArrayList<Integer>(Arrays.asList(values.get(2), INF, values.get(2), move[0], move[1]));
+                    }
+                }
+                
+            }
         }
-
-            
-
+        return bestMove;
     }
 
     // A function to find all moves from a state that hasn't actually happened.
