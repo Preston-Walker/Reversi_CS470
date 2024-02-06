@@ -8,13 +8,18 @@ import javax.swing.*;
 import java.math.*;
 import java.text.*;
 
+
 class RandomGuy {
+    // Declare some constants to use for infinity
+    final int INF = Integer.MAX_VALUE;
+    final int NEG_INF = Integer.MIN_VALUE;
 
     public Socket s;
 	public BufferedReader sin;
 	public PrintWriter sout;
     Random generator = new Random();
 
+    int maxDepth = 3;
     double t1, t2;
     int me;
     int boardState;
@@ -92,7 +97,7 @@ class RandomGuy {
             System.out.println("Moves that I can see: ");
             // Find out how many tiles each move will flip
             for (int[] move: moves){
-                move[2] = NumTilesFlip(me, move);
+                move[2] = HeuristicFuntion(me, move);
                 System.out.println(Integer.toString(move[0]) + ", "+ Integer.toString(move[1]) + "   flips: " + move[2]);
             }
             int max = 0;
@@ -109,7 +114,60 @@ class RandomGuy {
         return myMove;
     }
 
-    private int NumTilesFlip(int me, int[] move){
+    private ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int i, int j){
+       ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, i, j));
+       // Base case 
+       if (maxDepth <= depth){
+            // all moves = all moves
+            if (alpha < beta){
+                if (maximize){
+                    values = Alpha_beta_recursive(alpha, beta, !maximize, depth++);
+                }
+                else{
+                    values = Alpha_beta_recursive(beta, alpha, !maximize, depth++);
+                }
+            }
+            return values;
+        }
+        // Recursive case
+        else{
+            // alpha first then beta
+            ArrayList<Integer> bestMoves = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF));
+            fr
+        }
+
+            
+
+    }
+
+    // A function to find all moves from a state that hasn't actually happened.
+    private ArrayList<int[]> GetMovesFromState(int current_state[][]){
+        ArrayList<int[]> moves = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (current_state[i][j] == 0) {
+                    if (couldBe(current_state, i, j)) {
+                        // Each item in the array list has an x, y, and heuristic value (in that order)
+                        moves.add(new int[]{i,j,0});
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+
+
+
+
+
+    
+
+    private int HeuristicFuntion(int me, int[] move, int current_state[][]){
+        return NumTilesFlip(me, move, current_state);
+    }
+
+    private int NumTilesFlip(int me, int[] move, int current_state[][]){
         int opponent;
         if (me == 1){
             opponent = 2;
@@ -119,99 +177,100 @@ class RandomGuy {
         }
         // A running count of how many opposing tiles will flip
         int numToFlip = 0;
+        int temp = 0;
         // variables for the layout of the board
-        int i,j,temp;
+        int i,j;
 
         // Pure right:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i+1 < 8 && state[i+1][j] ==  opponent){
+        while(i+1 < 8 && current_state[i+1][j] ==  opponent){
             i++;
             temp++;
         }   
-        if (i+1 < 8 && state[i+1][j] == me){
+        if (i+1 < 8 && current_state[i+1][j] == me){
             numToFlip += temp;
         }
         // Pure up:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(j+1 < 8 && state[i][j+1] ==  opponent){
+        while(j+1 < 8 && current_state[i][j+1] ==  opponent){
             j++;
             temp++;
         }   
-        if (j+1 < 8 && state[i][j+1] == me){
+        if (j+1 < 8 && current_state[i][j+1] == me){
             numToFlip += temp;
         }
         // Pure left:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i-1 >= 0 && state[i-1][j] ==  opponent){
+        while(i-1 >= 0 && current_state[i-1][j] ==  opponent){
             i--;
             temp++;
         }   
-        if (i-1 >= 0 && state[i-1][j] == me){
+        if (i-1 >= 0 && current_state[i-1][j] == me){
             numToFlip += temp;
         }
         // Pure down:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(j-1 >= 0 && state[i][j-1] ==  opponent){
+        while(j-1 >= 0 && current_state[i][j-1] ==  opponent){
             j--;
             temp++;
         }   
-        if (j-1 >= 0 && state[i][j-1] == me){
+        if (j-1 >= 0 && current_state[i][j-1] == me){
             numToFlip += temp;
         }
         // up,right:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i+1 < 8 && j+1 < 8 &&  state[i+1][j+1] ==  opponent){
+        while(i+1 < 8 && j+1 < 8 &&  current_state[i+1][j+1] ==  opponent){
             i++;
             j++;
             temp++;
         }   
-        if (i+1 < 8 && j+1 < 8 && state[i+1][j+1] == me){
+        if (i+1 < 8 && j+1 < 8 && current_state[i+1][j+1] == me){
             numToFlip += temp;
         }
         // up,left:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i-1 >= 0 && j+1 < 8 &&  state[i-1][j+1] ==  opponent){
+        while(i-1 >= 0 && j+1 < 8 &&  current_state[i-1][j+1] ==  opponent){
             i--;
             j++;
             temp++;
         }   
-        if (i-1 >= 0 && j+1 < 8 && state[i-1][j+1] == me){
+        if (i-1 >= 0 && j+1 < 8 && current_state[i-1][j+1] == me){
             numToFlip += temp;
         }
         // down,left:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i-1 >= 0 && j-1 >= 0 &&  state[i-1][j-1] ==  opponent){
+        while(i-1 >= 0 && j-1 >= 0 &&  current_state[i-1][j-1] ==  opponent){
             i--;
             j--;
             temp++;
         }   
-        if (i-1 >= 0 && j-1 >= 0 && state[i-1][j-1] == me){
+        if (i-1 >= 0 && j-1 >= 0 && current_state[i-1][j-1] == me){
             numToFlip += temp;
         }
         // down,right:
         i = move[0];
         j = move[1];
         temp = 0;
-        while(i+1 < 8 && j-1 >= 0 &&  state[i+1][j-1] ==  opponent){
+        while(i+1 < 8 && j-1 >= 0 &&  current_state[i+1][j-1] ==  opponent){
             i++;
             j--;
             temp++;
         }   
-        if (i+1 < 8 && j-1 >= 0 && state[i+1][j-1] == me){
+        if (i+1 < 8 && j-1 >= 0 && current_state[i+1][j-1] == me){
             numToFlip += temp;
         }
         
