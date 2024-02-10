@@ -13,7 +13,7 @@ class RandomGuy {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    final int MAX_DEPTH = 11;
+    final int MAX_DEPTH = 1;
 
     public Socket s;
 	public BufferedReader sin;
@@ -35,7 +35,12 @@ class RandomGuy {
     public RandomGuy(int _me, String host) {
 
         me = _me;
+        if(host == null) return; // for testing purposes
+
         initClient(host);
+        
+
+        System.out.println("this is proof that it compiled 1234567");
 
         int myMove;
         // System.out.print("Me:  ");
@@ -136,7 +141,7 @@ class RandomGuy {
         return myMove;
     }
 
-    private ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
+    public ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
         // format of bestMove & values: alpha, beta, value, i, j 
         ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, 0, 0));
         // values is a temp variable, used to store the values of the current move, it is saved into bestMove if it the best so far
@@ -174,9 +179,9 @@ class RandomGuy {
                         // Make a new temp array for the current move
                         values = new ArrayList<Integer>(Arrays.asList(alpha, beta, value, move[0], move[1]));
                         // if the value of this move > alpha, update alpha, and the best move
-                        if (values.get(2) > alpha){
+                        if (value > alpha){
                             bestMove = values;
-                            alpha = values.get(2);
+                            alpha = value;
                             // use the new alpha value
                             values.set(0, alpha);
                             System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
@@ -196,6 +201,8 @@ class RandomGuy {
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
                 for (int[] move : possibleMoves) {
+                    System.out.println("\t--- Next Move ---");
+                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
                     value = HeuristicFuntion(me, opponent, opponent, move, current_state);
                     System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
                     System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
@@ -204,9 +211,9 @@ class RandomGuy {
                         // Make a new temp array for the current move
                         values = new ArrayList<Integer>(Arrays.asList(alpha, beta, value, move[0], move[1]));
                         // if the value of this move < beta, update beta, and the best move
-                        if (values.get(2) < beta){
+                        if (value < beta){
                             bestMove = values;
-                            beta = values.get(2);
+                            beta = value;
                             // use the new beta value
                             values.set(1, beta);
                             System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
@@ -221,6 +228,7 @@ class RandomGuy {
                     }
                 }
             }
+            return bestMove;
         }
         // Not the base case yet
         else{
@@ -231,17 +239,18 @@ class RandomGuy {
                 for (int[] move : possibleMoves) {
                     System.out.println("\t--- Next Move ---");
                     System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
-                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    System.out.println("\tAlpha and Beta before going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
                     if (alpha < beta){
                         // Make a new temp array for the current move
                         // flip the tiles in our local copy of the state before diving deeper
                         int next_state[][] = FlipTiles(me, move, current_state.clone());
                         values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
-                        // if the value of this move > alpha, update alpha, and the best move
-                        if (values.get(2) > alpha){
+                        System.out.println("Returning to depth " + Integer.toString(depth));
+                        // if the value of beta from the move > alpha, update alpha, and the best move
+                        if (values.get(1) > alpha){
                             bestMove = values;
-                            alpha = values.get(2);
+                            alpha = values.get(1);
                             // use the new alpha value
                             values.set(0, alpha);
                             System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
@@ -249,6 +258,7 @@ class RandomGuy {
                         else{
                             System.out.println("\tNot the best move... Moving on.");
                         }
+                        System.out.println("\tAlpha and Beta after going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     }
                     // otherwise, prune
                     else{
@@ -270,7 +280,7 @@ class RandomGuy {
                         // flip the tiles in our local copy of the state before diving deeper
                         int next_state[][] = FlipTiles(opponent, move, current_state.clone());
                         values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
-                        // if the alpha of this move < beta, update beta, and the best move
+                        // if the value of alpha from the move > beta, update bet, and the best move
                         if (values.get(0) < beta){
                             bestMove = values;
                             beta = values.get(0);
@@ -288,12 +298,12 @@ class RandomGuy {
                     }
                 }
             }
+            return new ArrayList<Integer>(Arrays.asList(alpha, beta, bestMove.get(2), bestMove.get(3), bestMove.get(4)));
         }
-        return bestMove;
     }
 
     // A function to find all moves from a state that hasn't actually happened.
-    private ArrayList<int[]> GetMovesFromState(int current_state[][], int player){
+    public ArrayList<int[]> GetMovesFromState(int current_state[][], int player){
         ArrayList<int[]> moves = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -354,10 +364,12 @@ class RandomGuy {
             // If the next move is a corner and it's my turn, add a corner to my total
             if (turn == me){
                 myCorners++;
+                System.out.println("\t\tI am getting a corner");
             }
             // If the next move is a corner and it's my opponent's turn, add a corner to their total
             else{
                 opponentConers++;
+                System.out.println("\t\tThe oppoment is getting a corner");
             }
         }
         // Return the difference in corners
@@ -365,54 +377,94 @@ class RandomGuy {
     }
 
     private int countCorners(int player, int current_state[][]){
+        int playerCournerCount = 0;
         if (current_state[0][0] == player){
-            
+            playerCournerCount += 1;
         }
-        if (current_state[0][0] == player){
-            
+        if (current_state[0][7] == player){
+            playerCournerCount += 1;
         }
-        
+        if (current_state[7][0] == player){
+            playerCournerCount += 1;
+        }
+        if (current_state[7][7] == player){
+            playerCournerCount += 1;
+        }
+        return playerCournerCount;
     }
 
-    private int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
+    private int MobilityParity(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // find the number of moves I can take right now
+        int myPossibleMoves = GetMovesFromState(current_state, me).size();
+        // simulate taking the turn listed
+        int next_state[][] = FlipTiles(turn, move, current_state);
+        // find available moves for opponent
+        int opponentPossibleMoves = GetMovesFromState(next_state, opponent).size();
+
+        return myPossibleMoves-opponentPossibleMoves;
+    }
+
+    private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
+        // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
+        int myStability = 0;
+        int opponentStability = 0;
+        // simulate taking the turn listed
+        int next_state[][] = FlipTiles(turn, move, current_state);
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                // first adjust my stability
+                if (next_state[i][j] == me){
+                    // first check for corner, and increment by 1
+                    if ((i == 0 && j == 0) ||
+                        (i == 7 && j == 0) ||
+                        (i == 7 && j == 7) ||
+                        (i == 0 && j == 7)){   
+                        myStability += 3;
+                    }
+                    // next check for edges, don't increase stability
+                    else if ((i == 0) ||
+                         (i == 7) ||
+                         (j == 7) ||
+                         (j == 0)){
+                        myStability++;
+                    }
+                    // unstable node, don't change stability
+                    else{
+                        continue;
+                    }
+                }
+                // next adjust opponent stability
+                else if (next_state[i][j] == opponent){
+                    // first check for corner, and increment by 3
+                    if ((i == 0 && j == 0) ||
+                        (i == 7 && j == 0) ||
+                        (i == 7 && j == 7) ||
+                        (i == 0 && j == 7)){   
+                        opponentStability += 3;
+                    }
+                    // next check for edges, increase stability by 1
+                    else if ((i == 0) ||
+                         (i == 7) ||
+                         (j == 7) ||
+                         (j == 0)){
+                        opponentStability++;
+                    }
+                    // unstable node, don't change stability
+                    else{
+                        continue;
+                    }
+                }
+            }
+        }
+        return myStability - opponentStability;
+    }
+
+    public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         System.out.println("\t\t--- Heuristic Function ---");
-        //return NumTilesFlip(me, move, current_state);
         
-
-        
-        //Coin parity
-        // if(MAX_DEPTH % 2 == 0){
-            // }
-        // else{
-        //     maxPlayerTiles = numTiles(maxPlayer, current_state) - NumTilesFlip(minPlayer, move, current_state); // 1 accounts for the placed tile of the player
-        //     minPlayerTiles = numTiles(minPlayer, current_state) + NumTilesFlip(minPlayer, move, current_state) + 1; // the current state that the opponent has subtracting the tiles made by the potentual move of the player
-        // }
-        
-        // int coinParityValue = 100 * (maxPlayerTiles - minPlayerTiles) / (maxPlayerTiles + minPlayerTiles);
-               
-
-
-        //mobility
-        //if ( Max Player Moves + Min Player Moves != 0)
-	        //Mobility Heuristic Value = 100 * (Max Player Moves - Min Player Moves) / (Max Player Moves + Min Player Moves)
-        //else
-            //Mobility Heuristic Value = 0
-
-        // corners captured
-        // if ( Max Player Corners + Min Player Corners != 0)
-        //     Corner Heuristic Value =
-        //         100 * (Max Player Corners - Min Player Corners) / (Max Player Corners + Min Player Corners)
-        // else
-        //     Corner Heuristic Value = 0
-
-        //stability
-        // if ( Max Player Stability Value + Min Player Stability Value != 0)
-	    //     Stability  Heuristic Value = 100 * (Max Player Stability Value - Min Player Stability Value) / (Max Player Stability Value + Min Player Stability Value)
-        // else
-	    //     Stability Heuristic Value = 0
-
-        int HeuristicValue = CoinParity(me, opponent, turn, move, current_state) + CornerParity(me, opponent, turn, move, current_state);
-        
+        // int HeuristicValue = 1 * CoinParity(me, opponent, turn, move, current_state) +  8 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 2 * MobilityParity(me, opponent, turn, move, current_state);
+        int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
         return HeuristicValue;
     }
 
