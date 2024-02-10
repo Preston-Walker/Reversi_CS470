@@ -110,15 +110,22 @@ class RandomGuy {
             //         myMove = moves.indexOf(move);
             //     }
             // }
+
+            // Make a copy of the state to pass into the function
             int current_state[][] = state.clone();
+            
+            // Get a list of all possible moves in a usable format
+            // format: x, y, heuristic value (initialized to 0)
             ArrayList<int[]> moves = new ArrayList<>();
-            moves = GetMovesFromState(current_state);
-            System.out.print("\n");
-            System.out.print("start of the next turn\n");
-            ArrayList<Integer> values = Alpha_beta_recursive(NEG_INF, INF, true, MAX_DEPTH, current_state);
-            System.out.println("end of turn \n");
+            moves = GetMovesFromState(current_state, me);
 
+            // Make decision with the Alpha_beta_recursive function
+            System.out.print("\n//////// Start of the next turn ////////\n");
+            // Format of Values: alpha, beta, value, x, y
+            ArrayList<Integer> values = Alpha_beta_recursive(NEG_INF, INF, true, 0, current_state);
+            System.out.println("//////// End of turn ////////\n");
 
+            // Find the selected move from the list of moves.
             for (int[] move: moves){
                 if (move[0] == values.get(3) && move[1] == values.get(4)){
                     myMove = moves.indexOf(move);
@@ -130,9 +137,12 @@ class RandomGuy {
     }
 
     private ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
-        // alpha, beta, value, i, j 
+        // format of bestMove & values: alpha, beta, value, i, j 
         ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, 0, 0));
+        // values is a temp variable, used to store the values of the current move, it is saved into bestMove if it the best so far
         ArrayList<Integer> values = new ArrayList<>(Arrays.asList(alpha, beta, alpha));
+
+        // Simple logic to determine which player is the player vs opponent
         int opponent;
         if (me == 1){
             opponent = 2;
@@ -140,93 +150,155 @@ class RandomGuy {
         else{
             opponent = 1;
         }
+
+        // value of the current move, either comes from the heuristic value (if at the base depth), or the selected node beneath
         int value; 
-        ArrayList<int[]> possibleMoves = GetMovesFromState(current_state);
-        System.out.print("at depth  = " + Integer.toString(depth) + " maximize is "); 
+        System.out.print("At depth = " + Integer.toString(depth) + " maximize is "); 
         System.out.print(maximize);
         System.out.print("\n");
         // base case
         if (MAX_DEPTH <= depth){
-            // for every move
-            for (int[] move : possibleMoves) {
-                System.out.print("reached max depth at " + Integer.toString(depth) + "\n");
-                System.out.print("move is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
-                // if maximizing, value -> alpha
-                if (maximize){
+            System.out.print("\tReached max depth at " + Integer.toString(depth) + "\n");
+            // base case, value = heursitic
+            if (maximize){
+                // find all possible moves and loop through them
+                ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, me);
+                for (int[] move : possibleMoves) {
+                    System.out.println("\t--- Next Move ---");
+                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
                     value = HeuristicFuntion(me, opponent, move, current_state);
-                    System.out.print("we are maxinizing so our huristic vaue is " + Integer.toString(value) + "\n");
-                    System.out.print("alpha and beta " + alpha + beta);
+                    System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently maximizing.\n");
+                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
-                    if (bestMove.get(0) < bestMove.get(1)){
-                        bestMove = new ArrayList<Integer>(Arrays.asList(value, INF, value, move[0], move[1]));
-                        System.out.print("changing next best move is " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
-                    }
-                    // otherwise, prune
-                    else{
-                        System.out.print("pruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
-                    }
-                }
-                // if minimizing, value -> beta
-                else{
-                    value = -HeuristicFuntion(opponent, me, move, current_state);
-                    System.out.print("we are minimizing so our huristic vaue is" + Integer.toString(value) + "\n");
-                    // if alpha < beta, don't prune
-                    if (bestMove.get(0) < bestMove.get(1)){
-                        bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, value, value, move[0], move[1]));
-                        System.out.print("changing next best move is " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
-                    }
-                    else{
-                        System.out.print("pruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
-                    }
-                }
-            }
-        }
-        else{
-            for (int[] move : possibleMoves) {
-                
-                // if maximizing, value -> alpha
-                if (maximize){
-                    int next_state[][] = FlipTiles(me, move, current_state.clone());
-                    // if alpha < beta, don't prune
-                    if (values.get(1) > values.get(0)){
-                        values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
-                        if (values.get(2) < bestMove.get(2)){
+                    if (alpha < beta){
+                        // Make a new temp array for the current move
+                        values = new ArrayList<Integer>(Arrays.asList(alpha, beta, value, move[0], move[1]));
+                        // if the value of this move > alpha, update alpha, and the best move
+                        if (values.get(2) > alpha){
                             bestMove = values;
+                            alpha = values.get(2);
+                            // use the new alpha value
+                            values.set(0, alpha);
+                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                        }
+                        else{
+                            System.out.println("\tNot the best move... Moving on.");
                         }
                     }
                     // otherwise, prune
                     else{
-                        System.out.print("pruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
-                // if minimizing, value -> beta
-                else{
-                    int next_state[][] = FlipTiles(me, move, current_state.clone());
+            }
+            // base case, value = heursitic, but negative since we are minimizing
+            else{
+                // find all possible moves and loop through them
+                ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
+                for (int[] move : possibleMoves) {
+                    value = -HeuristicFuntion(opponent, me, move, current_state);
+                    System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
+                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
-                    if (values.get(1) < values.get(0)){
-                        values = Alpha_beta_recursive(beta, alpha, !maximize, depth + 1, next_state);
-                        if (values.get(2) > bestMove.get(2)){
+                    if (alpha < beta){
+                        // Make a new temp array for the current move
+                        values = new ArrayList<Integer>(Arrays.asList(alpha, beta, value, move[0], move[1]));
+                        // if the value of this move < beta, update beta, and the best move
+                        if (values.get(2) < beta){
                             bestMove = values;
-                        }                    
+                            beta = values.get(2);
+                            // use the new beta value
+                            values.set(1, beta);
+                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                        }
+                        else{
+                            System.out.println("\tNot the best move... Moving on.");
+                        }
                     }
                     // otherwise, prune
                     else{
-                        System.out.print("pruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
-                
+            }
+        }
+        // Not the base case yet
+        else{
+            // if maximizing, value -> alpha
+            if (maximize){
+                // find all possible moves and loop through them
+                ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, me);
+                for (int[] move : possibleMoves) {
+                    System.out.println("\t--- Next Move ---");
+                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // if alpha < beta, don't prune
+                    if (alpha < beta){
+                        // Make a new temp array for the current move
+                        // flip the tiles in our local copy of the state before diving deeper
+                        int next_state[][] = FlipTiles(me, move, current_state.clone());
+                        values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
+                        // if the value of this move > alpha, update alpha, and the best move
+                        if (values.get(2) > alpha){
+                            bestMove = values;
+                            alpha = values.get(2);
+                            // use the new alpha value
+                            values.set(0, alpha);
+                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                        }
+                        else{
+                            System.out.println("\tNot the best move... Moving on.");
+                        }
+                    }
+                    // otherwise, prune
+                    else{
+                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                    }
+                }
+            }
+            // if minimizing, value -> beta
+            else{
+                // find all possible moves and loop through them
+                ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
+                for (int[] move : possibleMoves) {
+                    System.out.println("\t--- Next Move ---");
+                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // if alpha < beta, don't prune
+                    if (alpha < beta){
+                        // Make a new temp array for the current move
+                        // flip the tiles in our local copy of the state before diving deeper
+                        int next_state[][] = FlipTiles(opponent, move, current_state.clone());
+                        values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
+                        // if the alpha of this move < beta, update beta, and the best move
+                        if (values.get(0) < beta){
+                            bestMove = values;
+                            beta = values.get(0);
+                            // use the new alpha value
+                            values.set(1, beta);
+                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                        }
+                        else{
+                            System.out.println("\tNot the best move... Moving on.");
+                        }
+                    }
+                    // otherwise, prune
+                    else{
+                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                    }
+                }
             }
         }
         return bestMove;
     }
 
     // A function to find all moves from a state that hasn't actually happened.
-    private ArrayList<int[]> GetMovesFromState(int current_state[][]){
+    private ArrayList<int[]> GetMovesFromState(int current_state[][], int player){
         ArrayList<int[]> moves = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if (current_state[i][j] == 0) {
-                    if (couldBe(current_state, i, j)) {
+                    if (couldBe(current_state, i, j, player)) {
                         // Each item in the array list has an x, y, and heuristic value (in that order)
                         moves.add(new int[]{i,j,0});
                     }
@@ -237,13 +309,13 @@ class RandomGuy {
     }    
 
     private int HeuristicFuntion(int maxPlayer, int minPlayer, int[] move, int current_state[][]){
+        System.out.println("\t\t--- Heuristic Function ---");
         //return NumTilesFlip(me, move, current_state);
         int maxPlayerTiles;
         int minPlayerTiles;
-        System.out.println("Tiles Flipped by move: " + Integer.toString(NumTilesFlip(maxPlayer, move, current_state)));
-        System.out.println(" at move: " +  Integer.toString(move[0]) + Integer.toString(move[1]));
-        System.out.println("Max player Current tiles: " + Integer.toString(numTiles(maxPlayer, current_state)));
-        System.out.println("Min player Current tiles: " + Integer.toString(numTiles(minPlayer, current_state)));
+        System.out.println("\t\tTiles Flipped by move: " + Integer.toString(NumTilesFlip(maxPlayer, move, current_state)));
+        System.out.println("\t\tBefore Move: Max player Current tiles: " + Integer.toString(numTiles(maxPlayer, current_state)));
+        System.out.println("\t\tBefore Move: Min player Current tiles: " + Integer.toString(numTiles(minPlayer, current_state)));
 
         
         //Coin parity
@@ -258,8 +330,8 @@ class RandomGuy {
         
         // int coinParityValue = 100 * (maxPlayerTiles - minPlayerTiles) / (maxPlayerTiles + minPlayerTiles);
         int coinParityValue = maxPlayerTiles - minPlayerTiles;
-        System.out.print("maxPlayerTiles is equal to " + Integer.toString(maxPlayerTiles) + "\n");
-        System.out.print("minPlayerTiles is equal to " + Integer.toString(minPlayerTiles) + "\n");
+        System.out.print("\t\tAfter Move: MaxPlayerTiles is equal to " + Integer.toString(maxPlayerTiles) + "\n");
+        System.out.print("\t\tAfter Move: MinPlayerTiles is equal to " + Integer.toString(minPlayerTiles) + "\n");
 
 
         //mobility
@@ -565,7 +637,7 @@ class RandomGuy {
             for (i = 0; i < 8; i++) {
                 for (j = 0; j < 8; j++) {
                     if (state[i][j] == 0) {
-                        if (couldBe(state, i, j)) {
+                        if (couldBe(state, i, j, me)) {
                             validMoves[numValidMoves] = i*8 + j;
                             numValidMoves ++;
                             // System.out.println(i + ", " + j);
@@ -582,7 +654,7 @@ class RandomGuy {
         //}
     }
     
-    private boolean checkDirection(int state[][], int row, int col, int incx, int incy) {
+    private boolean checkDirection(int state[][], int row, int col, int incx, int incy, int player) {
         int sequence[] = new int[7];
         int seqLen;
         int i, r, c;
@@ -601,7 +673,7 @@ class RandomGuy {
         
         int count = 0;
         for (i = 0; i < seqLen; i++) {
-            if (me == 1) {
+            if (player == 1) {
                 if (sequence[i] == 2)
                     count ++;
                 else {
@@ -624,7 +696,7 @@ class RandomGuy {
         return false;
     }
     
-    private boolean couldBe(int state[][], int row, int col) {
+    private boolean couldBe(int state[][], int row, int col, int player) {
         int incx, incy;
         
         for (incx = -1; incx < 2; incx++) {
@@ -632,7 +704,7 @@ class RandomGuy {
                 if ((incx == 0) && (incy == 0))
                     continue;
             
-                if (checkDirection(state, row, col, incx, incy))
+                if (checkDirection(state, row, col, incx, incy, player))
                     return true;
             }
         }
