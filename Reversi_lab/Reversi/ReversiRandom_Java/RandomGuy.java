@@ -13,7 +13,7 @@ class RandomGuy {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    final int MAX_DEPTH = 1;
+    final int MAX_DEPTH = 11;
 
     public Socket s;
 	public BufferedReader sin;
@@ -166,7 +166,7 @@ class RandomGuy {
                 for (int[] move : possibleMoves) {
                     System.out.println("\t--- Next Move ---");
                     System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
-                    value = HeuristicFuntion(me, opponent, move, current_state);
+                    value = HeuristicFuntion(me, opponent, me, move, current_state);
                     System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently maximizing.\n");
                     System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
@@ -191,12 +191,12 @@ class RandomGuy {
                     }
                 }
             }
-            // base case, value = heursitic, but negative since we are minimizing
+            // base case, value = heursitic
             else{
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
                 for (int[] move : possibleMoves) {
-                    value = -HeuristicFuntion(opponent, me, move, current_state);
+                    value = -HeuristicFuntion(me, opponent, opponent, move, current_state);
                     System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
                     System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
@@ -308,30 +308,56 @@ class RandomGuy {
         return moves;
     }    
 
-    private int HeuristicFuntion(int maxPlayer, int minPlayer, int[] move, int current_state[][]){
+    private int CoinParity(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // Number of tiles for me (our program)
+        int myTiles;
+        // Number of tiles for my opponent
+        int opponentTiles;
+
+        // Debug info
+        System.out.println("\t\tTiles Flipped by move: " + Integer.toString(NumTilesFlip(turn, move, current_state)));
+        System.out.println("\t\tBefore Move: My Current tiles: " + Integer.toString(numTiles(me, current_state)));
+        System.out.println("\t\tBefore Move: Opponent Current tiles: " + Integer.toString(numTiles(opponent, current_state)));
+        
+        if (turn == me){
+            System.out.println("My (the algorithm) turn");
+            // My tiles: the number I currently have based on game state, + the number I flip with this move, + the 1 tile I play
+            myTiles = numTiles(me, current_state) + NumTilesFlip(me, move, current_state) + 1;
+            // Opponent tiles: the number they currently have based on game state, - the number of tiles I flip from them with my move
+            opponentTiles = numTiles(opponent, current_state) - NumTilesFlip(me, move, current_state); 
+        }
+        else{
+            System.out.println("Opponent's turn");
+            // My tiles: the number I currently have - the number the opponet flips from me
+            myTiles = numTiles(me, current_state) - NumTilesFlip(opponent, move, current_state);
+            // Opponent tiles: the number the currently have, + the number they flip from me, + the 1 tile they play
+            opponentTiles = numTiles(opponent, current_state) + NumTilesFlip(opponent, move, current_state) + 1;
+        }
+
+        // Debug info
+        System.out.print("\t\tAfter Move: My Current tiles: " + Integer.toString(myTiles) + "\n");
+        System.out.print("\t\tAfter Move: Opponent Current tiles: " + Integer.toString(opponentTiles) + "\n");
+
+        // Coin parity is just my tiles - my opponent's tiles
+        return myTiles-opponentTiles;
+    }
+
+    private int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         System.out.println("\t\t--- Heuristic Function ---");
         //return NumTilesFlip(me, move, current_state);
-        int maxPlayerTiles;
-        int minPlayerTiles;
-        System.out.println("\t\tTiles Flipped by move: " + Integer.toString(NumTilesFlip(maxPlayer, move, current_state)));
-        System.out.println("\t\tBefore Move: Max player Current tiles: " + Integer.toString(numTiles(maxPlayer, current_state)));
-        System.out.println("\t\tBefore Move: Min player Current tiles: " + Integer.toString(numTiles(minPlayer, current_state)));
+        
 
         
         //Coin parity
         // if(MAX_DEPTH % 2 == 0){
-            maxPlayerTiles = numTiles(maxPlayer, current_state) + NumTilesFlip(maxPlayer, move, current_state) + 1; // 1 accounts for the placed tile of the player
-            minPlayerTiles = numTiles(minPlayer, current_state) - NumTilesFlip(maxPlayer, move, current_state); // the current state that the opponent has subtracting the tiles made by the potentual move of the player
-        // }
+            // }
         // else{
         //     maxPlayerTiles = numTiles(maxPlayer, current_state) - NumTilesFlip(minPlayer, move, current_state); // 1 accounts for the placed tile of the player
         //     minPlayerTiles = numTiles(minPlayer, current_state) + NumTilesFlip(minPlayer, move, current_state) + 1; // the current state that the opponent has subtracting the tiles made by the potentual move of the player
         // }
         
         // int coinParityValue = 100 * (maxPlayerTiles - minPlayerTiles) / (maxPlayerTiles + minPlayerTiles);
-        int coinParityValue = maxPlayerTiles - minPlayerTiles;
-        System.out.print("\t\tAfter Move: MaxPlayerTiles is equal to " + Integer.toString(maxPlayerTiles) + "\n");
-        System.out.print("\t\tAfter Move: MinPlayerTiles is equal to " + Integer.toString(minPlayerTiles) + "\n");
+               
 
 
         //mobility
@@ -353,7 +379,7 @@ class RandomGuy {
         // else
 	    //     Stability Heuristic Value = 0
 
-        int HeuristicValue = coinParityValue;
+        int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
         
         return HeuristicValue;
     }
