@@ -196,7 +196,7 @@ class RandomGuy {
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
                 for (int[] move : possibleMoves) {
-                    value = -HeuristicFuntion(me, opponent, opponent, move, current_state);
+                    value = HeuristicFuntion(me, opponent, opponent, move, current_state);
                     System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
                     System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
@@ -320,14 +320,14 @@ class RandomGuy {
         System.out.println("\t\tBefore Move: Opponent Current tiles: " + Integer.toString(numTiles(opponent, current_state)));
         
         if (turn == me){
-            System.out.println("My (the algorithm) turn");
+            System.out.println("\t\tMy (the algorithm) turn");
             // My tiles: the number I currently have based on game state, + the number I flip with this move, + the 1 tile I play
             myTiles = numTiles(me, current_state) + NumTilesFlip(me, move, current_state) + 1;
             // Opponent tiles: the number they currently have based on game state, - the number of tiles I flip from them with my move
             opponentTiles = numTiles(opponent, current_state) - NumTilesFlip(me, move, current_state); 
         }
         else{
-            System.out.println("Opponent's turn");
+            System.out.println("\t\tOpponent's turn");
             // My tiles: the number I currently have - the number the opponet flips from me
             myTiles = numTiles(me, current_state) - NumTilesFlip(opponent, move, current_state);
             // Opponent tiles: the number the currently have, + the number they flip from me, + the 1 tile they play
@@ -340,6 +340,38 @@ class RandomGuy {
 
         // Coin parity is just my tiles - my opponent's tiles
         return myTiles-opponentTiles;
+    }
+
+    private int CornerParity(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // Count the number of corners  in the current state of the game
+        int myCorners = countCorners(me, current_state);
+        int opponentConers = countCorners(opponent, current_state);
+        // Check to see if the next move is going to be a corner
+        if ((move[0] == 0 && move[1] == 0) ||
+            (move[0] == 7 && move[1] == 0) ||
+            (move[0] == 7 && move[1] == 7) ||
+            (move[0] == 0 && move[1] == 7)){
+            // If the next move is a corner and it's my turn, add a corner to my total
+            if (turn == me){
+                myCorners++;
+            }
+            // If the next move is a corner and it's my opponent's turn, add a corner to their total
+            else{
+                opponentConers++;
+            }
+        }
+        // Return the difference in corners
+        return myCorners-opponentConers;
+    }
+
+    private int countCorners(int player, int current_state[][]){
+        if (current_state[0][0] == player){
+            
+        }
+        if (current_state[0][0] == player){
+            
+        }
+        
     }
 
     private int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
@@ -379,7 +411,7 @@ class RandomGuy {
         // else
 	    //     Stability Heuristic Value = 0
 
-        int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
+        int HeuristicValue = CoinParity(me, opponent, turn, move, current_state) + CornerParity(me, opponent, turn, move, current_state);
         
         return HeuristicValue;
     }
