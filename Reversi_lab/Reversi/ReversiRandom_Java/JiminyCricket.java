@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.time.Duration;
 
 
-class RandomGuy {
+class JiminyCricket {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
@@ -35,7 +35,7 @@ class RandomGuy {
     
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
-    public RandomGuy(int _me, String host) {
+    public JiminyCricket(int _me, String host) {
 
         me = _me;
         // Simple logic to determine which player is the player vs opponent
@@ -271,21 +271,7 @@ class RandomGuy {
         }
     }
 
-    private int nearbyOpponents(int me, int opponent, int turn, int[] move, int current_state[][]){
-        // A heuristic function to determine the number of bordering opponent tiles to the move about to be made
-        int nearbyOpponentTiles = 0;
-        int next_state[][] = FlipTiles(turn, move, current_state);
-        for (int i = move[0]-1;  i < move[0]+2; i++){
-            for (int j = move[1]-1;  j < move[1]+2; j++){
-                if (i >= 0 && i <= 7 && j >= 0 && j <= 7){
-                    if (next_state[i][j] == opponent){
-                        nearbyOpponentTiles++;
-                    }
-                }
-            }
-        }
-        return nearbyOpponentTiles;
-    }
+    
 
     private int CoinParity(int me, int opponent, int turn, int[] move, int current_state[][]){
         // Number of tiles for me (our program)
@@ -432,7 +418,7 @@ class RandomGuy {
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         // System.out.println("\t\t--- Heuristic Function ---");
         
-        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state) + 1 * nearbyOpponents(me, opponent, turn, move, current_state);
+        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
         // int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
         return HeuristicValue;
     }

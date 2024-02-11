@@ -74,10 +74,10 @@ class TestRandomGuy{
 
         // int heuristic = randomGuy.HeuristicFuntion(me, opponent, turn, move, current_state);
 
-        ArrayList<int[]> moves = randomGuy.GetMovesFromState(current_state, me);
+        // ArrayList<int[]> moves = randomGuy.GetMovesFromState(current_state, me);
         int myMove = -1;
 
-        ArrayList<Integer> values = randomGuy.Alpha_beta_recursive(Integer.MIN_VALUE, Integer.MAX_VALUE, true, 0, current_state);
+        // ArrayList<Integer> values = randomGuy.Alpha_beta_recursive_clean(Integer.MIN_VALUE, Integer.MAX_VALUE, true, 0, current_state);
         //  Alpha_beta_recursive(alpha, beta, maximize, depth, current_state[][])
 
         // System.out.println("Heuristic Function " + heuristic);
@@ -87,7 +87,7 @@ class TestRandomGuy{
         //     }
         // }
     
-        System.out.println("decided moves: " + Integer.toString(values.get(3)) + " " + values.get(4));
+        // System.out.println("decided moves: " + Integer.toString(values.get(3)) + " " + values.get(4));
     }
 
 }
