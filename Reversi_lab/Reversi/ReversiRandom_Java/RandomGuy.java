@@ -13,7 +13,7 @@ class RandomGuy {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    final int MAX_DEPTH = 1;
+    final int MAX_DEPTH = 4;
 
     public Socket s;
 	public BufferedReader sin;
@@ -40,7 +40,7 @@ class RandomGuy {
         initClient(host);
         
 
-        System.out.println("this is proof that it compiled 1234567");
+        // System.out.println("this is proof that it compiled 1234567");
 
         int myMove;
         // System.out.print("Me:  ");
@@ -117,7 +117,7 @@ class RandomGuy {
             // }
 
             // Make a copy of the state to pass into the function
-            int current_state[][] = state.clone();
+            int current_state[][] = CopyState(state);
             
             // Get a list of all possible moves in a usable format
             // format: x, y, heuristic value (initialized to 0)
@@ -125,10 +125,10 @@ class RandomGuy {
             moves = GetMovesFromState(current_state, me);
 
             // Make decision with the Alpha_beta_recursive function
-            System.out.print("\n//////// Start of the next turn ////////\n");
+            // System.out.print("\n//////// Start of the next turn ////////\n");
             // Format of Values: alpha, beta, value, x, y
             ArrayList<Integer> values = Alpha_beta_recursive(NEG_INF, INF, true, 0, current_state);
-            System.out.println("//////// End of turn ////////\n");
+            // System.out.println("//////// End of turn ////////\n");
 
             // Find the selected move from the list of moves.
             for (int[] move: moves){
@@ -158,22 +158,22 @@ class RandomGuy {
 
         // value of the current move, either comes from the heuristic value (if at the base depth), or the selected node beneath
         int value; 
-        System.out.print("At depth = " + Integer.toString(depth) + " maximize is "); 
-        System.out.print(maximize);
-        System.out.print("\n");
+        // System.out.print("At depth = " + Integer.toString(depth) + " maximize is "); 
+        // System.out.print(maximize);
+        // System.out.print("\n");
         // base case
         if (MAX_DEPTH <= depth){
-            System.out.print("\tReached max depth at " + Integer.toString(depth) + "\n");
+            // System.out.print("\tReached max depth at " + Integer.toString(depth) + "\n");
             // base case, value = heursitic
             if (maximize){
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, me);
                 for (int[] move : possibleMoves) {
-                    System.out.println("\t--- Next Move ---");
-                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    // System.out.println("\t--- Next Move ---");
+                    // System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
                     value = HeuristicFuntion(me, opponent, me, move, current_state);
-                    System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently maximizing.\n");
-                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently maximizing.\n");
+                    // System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
                     if (alpha < beta){
                         // Make a new temp array for the current move
@@ -184,15 +184,16 @@ class RandomGuy {
                             alpha = value;
                             // use the new alpha value
                             values.set(0, alpha);
-                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.println("\tBest move: i: " + bestMove.get(3) + " j: " + bestMove.get(4));
                         }
                         else{
-                            System.out.println("\tNot the best move... Moving on.");
+                            // System.out.println("\tNot the best move... Moving on.");
                         }
                     }
                     // otherwise, prune
                     else{
-                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        // System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
             }
@@ -201,11 +202,11 @@ class RandomGuy {
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
                 for (int[] move : possibleMoves) {
-                    System.out.println("\t--- Next Move ---");
-                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    // System.out.println("\t--- Next Move ---");
+                    // System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
                     value = HeuristicFuntion(me, opponent, opponent, move, current_state);
-                    System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
-                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // System.out.print("\tHeuristic value: " + Integer.toString(value) + " currently minimizing.\n");
+                    // System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
                     if (alpha < beta){
                         // Make a new temp array for the current move
@@ -216,15 +217,16 @@ class RandomGuy {
                             beta = value;
                             // use the new beta value
                             values.set(1, beta);
-                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(value) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.println("\tBest move: i: " + bestMove.get(3) + " j: " + bestMove.get(4));
                         }
                         else{
-                            System.out.println("\tNot the best move... Moving on.");
+                            // System.out.println("\tNot the best move... Moving on.");
                         }
                     }
                     // otherwise, prune
                     else{
-                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        // System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
             }
@@ -237,32 +239,42 @@ class RandomGuy {
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, me);
                 for (int[] move : possibleMoves) {
-                    System.out.println("\t--- Next Move ---");
-                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
-                    System.out.println("\tAlpha and Beta before going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // System.out.println("\t--- Next Move ---");
+                    // System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    // System.out.println("\tAlpha and Beta before going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
                     if (alpha < beta){
                         // Make a new temp array for the current move
                         // flip the tiles in our local copy of the state before diving deeper
-                        int next_state[][] = FlipTiles(me, move, current_state.clone());
+                        int next_state[][] = FlipTiles(me, move, CopyState(current_state));
+                        // print state before going deeper
+                        for (int i = 7; i >= 0; i--){
+                            for (int j = 0; j < 8; j++){
+                                // System.out.print(next_state[i][j] + " ");
+                            }
+                            // System.out.print("\n");
+                        }
                         values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
-                        System.out.println("Returning to depth " + Integer.toString(depth));
+                        // System.out.println("Returning to depth " + Integer.toString(depth));
                         // if the value of beta from the move > alpha, update alpha, and the best move
                         if (values.get(1) > alpha){
                             bestMove = values;
+                            bestMove.set(3, move[0]);
+                            bestMove.set(4, move[1]);
                             alpha = values.get(1);
                             // use the new alpha value
                             values.set(0, alpha);
-                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.println("\tBest move: i: " + bestMove.get(3) + " j: " + bestMove.get(4));
                         }
                         else{
-                            System.out.println("\tNot the best move... Moving on.");
+                            // System.out.println("\tNot the best move... Moving on.");
                         }
-                        System.out.println("\tAlpha and Beta after going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                        // System.out.println("\tAlpha and Beta after going deeper: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     }
                     // otherwise, prune
                     else{
-                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        // System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
             }
@@ -271,30 +283,33 @@ class RandomGuy {
                 // find all possible moves and loop through them
                 ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, opponent);
                 for (int[] move : possibleMoves) {
-                    System.out.println("\t--- Next Move ---");
-                    System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
-                    System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
+                    // System.out.println("\t--- Next Move ---");
+                    // System.out.print("\tmove is at " +  Integer.toString(move[0]) + " " + Integer.toString(move[1]) + "\n");
+                    // System.out.println("\tAlpha and Beta: " + Integer.toString(alpha) + ", " +  Integer.toString(beta));
                     // if alpha < beta, don't prune
                     if (alpha < beta){
                         // Make a new temp array for the current move
                         // flip the tiles in our local copy of the state before diving deeper
-                        int next_state[][] = FlipTiles(opponent, move, current_state.clone());
+                        int next_state[][] = FlipTiles(opponent, move, CopyState(current_state));
                         values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
                         // if the value of alpha from the move > beta, update bet, and the best move
                         if (values.get(0) < beta){
                             bestMove = values;
+                            bestMove.set(3, move[0]);
+                            bestMove.set(4, move[1]);
                             beta = values.get(0);
                             // use the new alpha value
                             values.set(1, beta);
-                            System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.print("\tNew best move:\n\t\tValue: " + Integer.toString(values.get(2)) + " at " + Integer.toString(move[0]) + " " + Integer.toString(move[1]) + " \n");
+                            // System.out.println("\tBest move: i: " + bestMove.get(3) + " j: " + bestMove.get(4));
                         }
                         else{
-                            System.out.println("\tNot the best move... Moving on.");
+                            // System.out.println("\tNot the best move... Moving on.");
                         }
                     }
                     // otherwise, prune
                     else{
-                        System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
+                        // System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                     }
                 }
             }
@@ -325,19 +340,19 @@ class RandomGuy {
         int opponentTiles;
 
         // Debug info
-        System.out.println("\t\tTiles Flipped by move: " + Integer.toString(NumTilesFlip(turn, move, current_state)));
-        System.out.println("\t\tBefore Move: My Current tiles: " + Integer.toString(numTiles(me, current_state)));
-        System.out.println("\t\tBefore Move: Opponent Current tiles: " + Integer.toString(numTiles(opponent, current_state)));
+        // System.out.println("\t\tTiles Flipped by move: " + Integer.toString(NumTilesFlip(turn, move, current_state)));
+        // System.out.println("\t\tBefore Move: My Current tiles: " + Integer.toString(numTiles(me, current_state)));
+        // System.out.println("\t\tBefore Move: Opponent Current tiles: " + Integer.toString(numTiles(opponent, current_state)));
         
         if (turn == me){
-            System.out.println("\t\tMy (the algorithm) turn");
+            // System.out.println("\t\tMy (the algorithm) turn");
             // My tiles: the number I currently have based on game state, + the number I flip with this move, + the 1 tile I play
             myTiles = numTiles(me, current_state) + NumTilesFlip(me, move, current_state) + 1;
             // Opponent tiles: the number they currently have based on game state, - the number of tiles I flip from them with my move
             opponentTiles = numTiles(opponent, current_state) - NumTilesFlip(me, move, current_state); 
         }
         else{
-            System.out.println("\t\tOpponent's turn");
+            // System.out.println("\t\tOpponent's turn");
             // My tiles: the number I currently have - the number the opponet flips from me
             myTiles = numTiles(me, current_state) - NumTilesFlip(opponent, move, current_state);
             // Opponent tiles: the number the currently have, + the number they flip from me, + the 1 tile they play
@@ -345,8 +360,8 @@ class RandomGuy {
         }
 
         // Debug info
-        System.out.print("\t\tAfter Move: My Current tiles: " + Integer.toString(myTiles) + "\n");
-        System.out.print("\t\tAfter Move: Opponent Current tiles: " + Integer.toString(opponentTiles) + "\n");
+        // System.out.print("\t\tAfter Move: My Current tiles: " + Integer.toString(myTiles) + "\n");
+        // System.out.print("\t\tAfter Move: Opponent Current tiles: " + Integer.toString(opponentTiles) + "\n");
 
         // Coin parity is just my tiles - my opponent's tiles
         return myTiles-opponentTiles;
@@ -364,12 +379,12 @@ class RandomGuy {
             // If the next move is a corner and it's my turn, add a corner to my total
             if (turn == me){
                 myCorners++;
-                System.out.println("\t\tI am getting a corner");
+                // System.out.println("\t\tI am getting a corner");
             }
             // If the next move is a corner and it's my opponent's turn, add a corner to their total
             else{
                 opponentConers++;
-                System.out.println("\t\tThe oppoment is getting a corner");
+                // System.out.println("\t\tThe oppoment is getting a corner");
             }
         }
         // Return the difference in corners
@@ -461,10 +476,10 @@ class RandomGuy {
     }
 
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
-        System.out.println("\t\t--- Heuristic Function ---");
+        // System.out.println("\t\t--- Heuristic Function ---");
         
-        // int HeuristicValue = 1 * CoinParity(me, opponent, turn, move, current_state) +  8 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 2 * MobilityParity(me, opponent, turn, move, current_state);
-        int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
+        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
+        // int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
         return HeuristicValue;
     }
 
@@ -714,6 +729,16 @@ class RandomGuy {
         
         return numToFlip;
     }
+
+    private int[][] CopyState(int current_state[][]){
+        int[][] state_copy = new int[8][8];
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                state_copy[i][j] = current_state[i][j];
+            }
+        }
+        return state_copy;
+    }
     
     // generates the set of valid moves for the player; returns a list of valid moves (validMoves)
     private void getValidMoves(int round, int state[][]) {
@@ -854,6 +879,8 @@ class RandomGuy {
         } catch (IOException e) {
             System.err.println("Caught IOException: " + e.getMessage());
         }
+
+        
         
         // System.out.println("Turn: " + turn);
         // System.out.println("Round: " + round);
