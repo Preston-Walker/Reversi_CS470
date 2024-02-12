@@ -11,11 +11,11 @@ import java.time.Instant;
 import java.time.Duration;
 
 
-class RandomGuy {
+class MiniMax {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    int MAX_DEPTH = 10;
+    final int MAX_DEPTH = 6;
 
     public Socket s;
 	public BufferedReader sin;
@@ -32,15 +32,10 @@ class RandomGuy {
     
     int validMoves[] = new int[64];
     int numValidMoves;
-
-    int timeLimit = 1;
-    int timeLimitMilli = timeLimit * 60000 ; // 3 minutes is 30000 milliseconds
-    Instant startMove;
-    Double timeLeft;
     
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
-    public RandomGuy(int _me, String host) {
+    public MiniMax(int _me, String host) {
 
         me = _me;
         // Simple logic to determine which player is the player vs opponent
@@ -70,13 +65,6 @@ class RandomGuy {
                 // System.out.println("Move");
                 getValidMoves(round, state);
                 
-                if(me == 1){
-                    timeLeft = t1;
-                }
-                else{
-                    timeLeft = t2;
-                }
-                startMove = Instant.now();
                 myMove = move(round);
                 //myMove = generator.nextInt(numValidMoves);        // select a move randomly
                 
@@ -92,19 +80,6 @@ class RandomGuy {
             
             //readMessage();
         //}
-    }
-
-    private void timeDepth(){
-        Instant currentGame = Instant.now();
-        Long startMoveTimeMilli = (long)(timeLeft * 1000);
-        Long passedTime = Duration.between(startMove, currentGame).toMillis();
-        Long timeLeft = startMoveTimeMilli - passedTime;
-        // System.out.println("true passed time  " + Long.toString(timeLeft));
-        // if ((Long)(timeLeft * 1000) - PassedTime < 2000
-        if(timeLeft < 2000){
-            MAX_DEPTH = 2;
-            // System.out.println("set depth to two at time: " + Double.toString(t2));
-        }
     }
     
     // You should modify this function
@@ -163,10 +138,10 @@ class RandomGuy {
             // Make decision with the Alpha_beta_recursive function
             // System.out.print("\n//////// Start of the next turn ////////\n");
             // Format of Values: alpha, beta, value, x, y
-            Instant startMove = Instant.now();
+            Instant start = Instant.now();
             ArrayList<Integer> values = Alpha_beta_recursive_clean(NEG_INF, INF, true, 0, current_state);
-            Instant endMove = Instant.now();
-            long time = Duration.between(startMove, endMove).toMillis();
+            Instant end = Instant.now();
+            long time = Duration.between(start, end).toMillis();
             System.out.println();
             System.out.println(time+" Milli seconds");
             // System.out.println("//////// End of turn ////////\n");
@@ -200,7 +175,6 @@ class RandomGuy {
     }    
 
     public ArrayList<Integer> Alpha_beta_recursive_clean(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
-        timeDepth();
         // format of bestMove & values: alpha, beta, value, i, j 
         ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, 0, 0));
         // values is a temp variable, used to store the values of the current move, it is saved into bestMove if it the best so far
@@ -297,21 +271,7 @@ class RandomGuy {
         }
     }
 
-    private int nearbyOpponents(int me, int opponent, int turn, int[] move, int current_state[][]){
-        // A heuristic function to determine the number of bordering opponent tiles to the move about to be made
-        int nearbyOpponentTiles = 0;
-        int next_state[][] = FlipTiles(turn, move, current_state);
-        for (int i = move[0]-1;  i < move[0]+2; i++){
-            for (int j = move[1]-1;  j < move[1]+2; j++){
-                if (i >= 0 && i <= 7 && j >= 0 && j <= 7){
-                    if (next_state[i][j] == opponent){
-                        nearbyOpponentTiles++;
-                    }
-                }
-            }
-        }
-        return nearbyOpponentTiles;
-    }
+    
 
     private int CoinParity(int me, int opponent, int turn, int[] move, int current_state[][]){
         // Number of tiles for me (our program)
@@ -458,7 +418,7 @@ class RandomGuy {
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         // System.out.println("\t\t--- Heuristic Function ---");
         
-        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state) + 1 * nearbyOpponents(me, opponent, turn, move, current_state);
+        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
         // int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
         return HeuristicValue;
     }

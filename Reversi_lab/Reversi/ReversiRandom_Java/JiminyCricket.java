@@ -15,7 +15,7 @@ class JiminyCricket {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    final int MAX_DEPTH = 6;
+    int MAX_DEPTH = 8;
 
     public Socket s;
 	public BufferedReader sin;
@@ -32,6 +32,9 @@ class JiminyCricket {
     
     int validMoves[] = new int[64];
     int numValidMoves;
+
+    Instant startMove;
+    Double timeLeft;
     
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
@@ -65,6 +68,13 @@ class JiminyCricket {
                 // System.out.println("Move");
                 getValidMoves(round, state);
                 
+                if(me == 1){
+                    timeLeft = t1;
+                }
+                else{
+                    timeLeft = t2;
+                }
+                startMove = Instant.now();
                 myMove = move(round);
                 //myMove = generator.nextInt(numValidMoves);        // select a move randomly
                 
@@ -80,6 +90,22 @@ class JiminyCricket {
             
             //readMessage();
         //}
+    }
+
+    private void timeDepth(){
+        Instant currentGame = Instant.now();
+        Long startMoveTimeMilli = (long)(timeLeft * 1000);
+        Long passedTime = Duration.between(startMove, currentGame).toMillis();
+        Long timeLeft = startMoveTimeMilli - passedTime;
+        // System.out.println("true passed time  " + Long.toString(timeLeft));
+        // if ((Long)(timeLeft * 1000) - PassedTime < 2000
+        if(timeLeft < 2000){ // less than 2 seconds
+            MAX_DEPTH = 2;
+            // System.out.println("set depth to two at time: " + Double.toString(t2));
+        }
+        else if(timeLeft < 10000){
+            MAX_DEPTH = 6;
+        }
     }
     
     // You should modify this function
@@ -138,12 +164,12 @@ class JiminyCricket {
             // Make decision with the Alpha_beta_recursive function
             // System.out.print("\n//////// Start of the next turn ////////\n");
             // Format of Values: alpha, beta, value, x, y
-            Instant start = Instant.now();
-            ArrayList<Integer> values = Alpha_beta_recursive_clean(NEG_INF, INF, true, 0, current_state);
-            Instant end = Instant.now();
-            long time = Duration.between(start, end).toMillis();
-            System.out.println();
-            System.out.println(time+" Milli seconds");
+            // Instant startMove = Instant.now();
+            ArrayList<Integer> values = Alpha_beta_recursive(NEG_INF, INF, true, 0, current_state);
+            // Instant endMove = Instant.now();
+            // long time = Duration.between(startMove, endMove).toMillis();
+            // System.out.println();
+            // System.out.println(time+" Milli seconds");
             // System.out.println("//////// End of turn ////////\n");
 
             // Find the selected move from the list of moves.
@@ -174,7 +200,8 @@ class JiminyCricket {
         return moves;
     }    
 
-    public ArrayList<Integer> Alpha_beta_recursive_clean(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
+    public ArrayList<Integer> Alpha_beta_recursive(int alpha, int beta, boolean maximize, int depth, int current_state[][]){
+        timeDepth();
         // format of bestMove & values: alpha, beta, value, i, j 
         ArrayList<Integer> bestMove = new ArrayList<Integer>(Arrays.asList(NEG_INF, INF, NEG_INF, 0, 0));
         // values is a temp variable, used to store the values of the current move, it is saved into bestMove if it the best so far
@@ -239,7 +266,7 @@ class JiminyCricket {
                     //     }
                     //     System.out.print("\n");
                     // }
-                    values = Alpha_beta_recursive_clean(alpha, beta, !maximize, depth + 1, next_state);
+                    values = Alpha_beta_recursive(alpha, beta, !maximize, depth + 1, next_state);
                     // System.out.println("Returning to depth " + Integer.toString(depth));
                     if (maximize && values.get(1) > alpha){
                         bestMove = values;
@@ -271,7 +298,21 @@ class JiminyCricket {
         }
     }
 
-    
+    private int nearbyOpponents(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // A heuristic function to determine the number of bordering opponent tiles to the move about to be made
+        int nearbyOpponentTiles = 0;
+        int next_state[][] = FlipTiles(turn, move, current_state);
+        for (int i = move[0]-1;  i < move[0]+2; i++){
+            for (int j = move[1]-1;  j < move[1]+2; j++){
+                if (i >= 0 && i <= 7 && j >= 0 && j <= 7){
+                    if (next_state[i][j] == opponent){
+                        nearbyOpponentTiles++;
+                    }
+                }
+            }
+        }
+        return nearbyOpponentTiles;
+    }
 
     private int CoinParity(int me, int opponent, int turn, int[] move, int current_state[][]){
         // Number of tiles for me (our program)
@@ -418,7 +459,7 @@ class JiminyCricket {
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         // System.out.println("\t\t--- Heuristic Function ---");
         
-        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
+        int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state) + 1 * nearbyOpponents(me, opponent, turn, move, current_state);
         // int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
         return HeuristicValue;
     }
