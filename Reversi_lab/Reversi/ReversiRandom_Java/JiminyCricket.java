@@ -881,7 +881,7 @@ class JiminyCricket {
     //   ipaddress is the ipaddress on the computer the server was launched on.  Enter "localhost" if it is on the same computer
     //   player_number is 1 (for the black player) and 2 (for the white player)
     public static void main(String args[]) {
-        new RandomGuy(Integer.parseInt(args[1]), args[0]);
+        new JiminyCricket(Integer.parseInt(args[1]), args[0]);
     }
     
 }

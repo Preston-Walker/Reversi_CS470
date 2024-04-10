@@ -15,7 +15,7 @@ class FinalReversi {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    int MAX_DEPTH = 0;
+    int MAX_DEPTH = 8;
 
     public Socket s;
 	public BufferedReader sin;
@@ -39,6 +39,7 @@ class FinalReversi {
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
     public FinalReversi(int _me, String host) {
+        System.out.println("this is proof that it compiled 1234567");
 
         me = _me;
         // Simple logic to determine which player is the player vs opponent
@@ -54,7 +55,6 @@ class FinalReversi {
         initClient(host);
         
 
-        // System.out.println("this is proof that it compiled 1234567");
 
         int myMove;
         // System.out.print("Me:  ");
@@ -100,11 +100,11 @@ class FinalReversi {
         // System.out.println("true passed time  " + Long.toString(timeLeft));
         // if ((Long)(timeLeft * 1000) - PassedTime < 2000
         if(timeLeft < 2000){ // less than 2 seconds
-            MAX_DEPTH = 0;
+            MAX_DEPTH = 6;
             // System.out.println("set depth to two at time: " + Double.toString(t2));
         }
         else if(timeLeft < 10000){
-            MAX_DEPTH = 0;
+            MAX_DEPTH = 2;
         }
     }
     
@@ -367,7 +367,7 @@ class FinalReversi {
             // If the next move is a corner and it's my opponent's turn, add a corner to their total
             else{
                 opponentConers++;
-                // System.out.println("\t\tThe oppoment is getting a corner");
+                // System.out.println("\t\tThe opponent is getting a corner");
             }
         }
         // Return the difference in corners
@@ -375,7 +375,7 @@ class FinalReversi {
     }
 
     private int countCorners(int player, int current_state[][]){
-        int playerCournerCount = 0;
+         int playerCournerCount = 0;
         if (current_state[0][0] == player){
             playerCournerCount += 1;
         }
@@ -391,6 +391,93 @@ class FinalReversi {
         return playerCournerCount;
     }
 
+    private int CornerCloseness(int me, int opponent, int turn, int[] move, int current_state[][]){
+        int myTiles = 0;
+        int opponentTiles = 0;
+        if (current_state[0][0] == 0 || (move[0] == 0 && move[1] == 0)){
+            if (current_state[0][1] == me || (move[0] == 0 && move[1] == 1 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[0][1] == opponent || (move[0] == 0 && move[1] == 1 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[1][1] == me || (move[0] == 1 && move[1] == 1 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[1][1] == opponent || (move[0] == 1 && move[1] == 1 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[1][0] == me || (move[0] == 1 && move[1] == 0 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[1][0] == opponent || (move[0] == 1 && move[1] == 0 && turn == opponent)){
+                opponentTiles++;
+            }
+        }
+        if (current_state[7][0] == 0 || (move[0] == 7 && move[1] == 0)){
+            if (current_state[7][1] == me || (move[0] == 7 && move[1] == 1 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[7][1] == opponent || (move[0] == 7 && move[1] == 1 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[6][1] == me || (move[0] == 6 && move[1] == 1 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[6][1] == opponent || (move[0] == 6 && move[1] == 1 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[6][0] == me || (move[0] == 6 && move[1] == 0 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[6][0] == opponent || (move[0] == 6 && move[1] == 0 && turn == opponent)){
+                opponentTiles++;
+            }
+        }
+        if (current_state[7][7] == 0 || (move[0] == 7 && move[1] == 7)){
+            if (current_state[7][6] == me || (move[0] == 7 && move[1] == 6 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[7][6] == opponent || (move[0] == 7 && move[1] == 6 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[6][6] == me || (move[0] == 6 && move[1] == 6 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[6][6] == opponent || (move[0] == 6 && move[1] == 6 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[6][7] == me || (move[0] == 6 && move[1] == 7 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[6][7] == opponent || (move[0] == 6 && move[1] == 7 && turn == opponent)){
+                opponentTiles++;
+            }
+        }
+        if (current_state[0][7] == 0 || (move[0] == 0 && move[1] == 7)){
+            if (current_state[0][6] == me || (move[0] == 0 && move[1] == 6 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[0][6] == opponent || (move[0] == 0 && move[1] == 6 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[1][6] == me || (move[0] == 1 && move[1] == 6 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[1][6] == opponent || (move[0] == 1 && move[1] == 6 && turn == opponent)){
+                opponentTiles++;
+            }
+            if (current_state[1][7] == me || (move[0] == 1 && move[1] == 7 && turn == me)){
+                myTiles++;
+            }
+            else if (current_state[1][7] == opponent || (move[0] == 1 && move[1] == 7 && turn == opponent)){
+                opponentTiles++;
+            }
+        }
+
+        return myTiles-opponentTiles;
+    }
+
     private int MobilityParity(int me, int opponent, int turn, int[] move, int current_state[][]){
         // find the number of moves I can take right now
         int myPossibleMoves = GetMovesFromState(current_state, me).size();
@@ -403,77 +490,161 @@ class FinalReversi {
     }
 
     private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
-        // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
-        // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
         int myStability = 0;
         int opponentStability = 0;
-        // simulate taking the turn listed
         int next_state[][] = FlipTiles(turn, move, current_state);
         for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
-                // first adjust my stability
-                if (next_state[i][j] == me){
-                    // first check for corner, and increment by 1
-                    if ((i == 0 && j == 0) ||
-                        (i == 7 && j == 0) ||
-                        (i == 7 && j == 7) ||
-                        (i == 0 && j == 7)){   
-                        myStability += 3;
-                    }
-                    // next check for edges, don't increase stability
-                    else if ((i == 0) ||
-                         (i == 7) ||
-                         (j == 7) ||
-                         (j == 0)){
-                        myStability++;
-                    }
-                    // unstable node, don't change stability
-                    else{
-                        continue;
-                    }
+             for (int j = 0; j < 8; j++){
+                if(next_state[i][j] == 0){
+                    
                 }
-                // next adjust opponent stability
-                else if (next_state[i][j] == opponent){
-                    // first check for corner, and increment by 3
-                    if ((i == 0 && j == 0) ||
-                        (i == 7 && j == 0) ||
-                        (i == 7 && j == 7) ||
-                        (i == 0 && j == 7)){   
-                        opponentStability += 3;
-                    }
-                    // next check for edges, increase stability by 1
-                    else if ((i == 0) ||
-                         (i == 7) ||
-                         (j == 7) ||
-                         (j == 0)){
-                        opponentStability++;
-                    }
-                    // unstable node, don't change stability
-                    else{
-                        continue;
-                    }
+                if(next_state[i][j] == me){
+                    
                 }
-            }
+                if(next_state[i][j] == opponent){
+                    
+                }
+             }
         }
+        
         return myStability - opponentStability;
     }
+
+//     private DiagnalHorizontalVertialIndexes(int i, int j){
+//         in
+//  checkVerticies    }
+
+    // private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+    //     int myStability = 0;
+    //     int opponentStability = 0;
+    //     int next_state[][] = FlipTiles(turn, move, current_state);
+    //     for (int i = 0; i < 8; i++){
+    //         for (int j = 0; j < 8; j++){
+    //             // first adjust my stability
+    //             if (next_state[i][j] == me){
+    //                 // first check for corner, and increment by 1
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     myStability += 3;
+    //                 }
+    //                 // next check for edges, don't increase stability
+    //                 else if ((i == 0) ||
+    //                         (i == 7) ||
+    //                         (j == 7) ||
+    //                         (j == 0)){
+    //                     myStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //             // next adjust opponent stability
+    //             else if (next_state[i][j] == opponent){
+    //                 // first check for corner, and increment by 3
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     opponentStability += 3;
+    //                 }
+    //                 // next check for edges, increase stability by 1
+    //                 else if ((i == 0) ||
+    //                         (i == 7) ||
+    //                         (j == 7) ||
+    //                         (j == 0)){
+    //                     opponentStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return myStability - opponentStability;
+    // }
+
+    // private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+    //     // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
+    //     // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
+    //     int myStability = 0;
+    //     int opponentStability = 0;
+    //     // simulate taking the turn listed
+    //     int next_state[][] = FlipTiles(turn, move, current_state);
+    //     for (int i = 0; i < 8; i++){
+    //         for (int j = 0; j < 8; j++){
+    //             // first adjust my stability
+    //             if (next_state[i][j] == me){
+    //                 // first check for corner, and increment by 1
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     myStability += 3;
+    //                 }
+    //                 // next check for edges, don't increase stability
+    //                 else if ((i == 0) ||
+    //                      (i == 7) ||
+    //                      (j == 7) ||
+    //                      (j == 0)){
+    //                     myStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //             // next adjust opponent stability
+    //             else if (next_state[i][j] == opponent){
+    //                 // first check for corner, and increment by 3
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     opponentStability += 3;
+    //                 }
+    //                 // next check for edges, increase stability by 1
+    //                 else if ((i == 0) ||
+    //                      (i == 7) ||
+    //                      (j == 7) ||
+    //                      (j == 0)){
+    //                     opponentStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return myStability - opponentStability;
+    // }
 
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         // System.out.println("\t\t--- Heuristic Function ---");
         
         // Heuristic function for Jiminy Cricket
-        // Record vs MCTS easy: 0-4
-        // int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  10 * CornerParity(me, opponent, turn, move, current_state) + 1 * StabilityMeasure(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state) + 1 * nearbyOpponents(me, opponent, turn, move, current_state);
+        // int HeuristicValue = 2 * CoinParity(me, opponent, turn, move, current_state) +  
+        //                     10 * CornerParity(me, opponent, turn, move, current_state) + 
+        //                     1 * StabilityMeasure(me, opponent, turn, move, current_state) + 
+        //                     1 * MobilityParity(me, opponent, turn, move, current_state) + 
+        //                     1 * nearbyOpponents(me, opponent, turn, move, current_state);
 
         // Simple Heuristic funciton only looking at coin parity
         // int HeuristicValue = CoinParity(me, opponent, turn, move, current_state);
 
         // Simple Heuristic funciton only looking at corner parity
-        // didn't even get a single corner vs MCTS
-        int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
+        // 1-2 vs MCTS easy
+        // int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
 
         // Record vs MCTS easy: 1-3 (But still looked worse than Jiminy Cricket)
         // int HeuristicValue = 3 * CoinParity(me, opponent, turn, move, current_state) +  15 * CornerParity(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
+
+        // Heuristic based on corners and corner closeness
+        int HeuristicValue = 25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 380 * -13 * CornerCloseness(me, opponent, turn, move, current_state) + 50 * CoinParity(me, opponent, turn, move, current_state) + 78 * MobilityParity(me, opponent, turn, move, current_state);
 
         return HeuristicValue;
     }
@@ -895,7 +1066,7 @@ class FinalReversi {
     //   ipaddress is the ipaddress on the computer the server was launched on.  Enter "localhost" if it is on the same computer
     //   player_number is 1 (for the black player) and 2 (for the white player)
     public static void main(String args[]) {
-        new RandomGuy(Integer.parseInt(args[1]), args[0]);
+        new FinalReversi(Integer.parseInt(args[1]), args[0]);
     }
     
 }
