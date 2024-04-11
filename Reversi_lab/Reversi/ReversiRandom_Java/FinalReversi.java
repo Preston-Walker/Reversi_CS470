@@ -39,6 +39,8 @@ class FinalReversi {
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
     public FinalReversi(int _me, String host) {
+        System.out.println("test print 10000000004240204");
+        System.out.flush();
 
         me = _me;
         // Simple logic to determine which player is the player vs opponent
@@ -403,60 +405,233 @@ class FinalReversi {
     }
 
     private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
-        // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
-        // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
         int myStability = 0;
         int opponentStability = 0;
-        // simulate taking the turn listed
         int next_state[][] = FlipTiles(turn, move, current_state);
         for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
-                // first adjust my stability
-                if (next_state[i][j] == me){
-                    // first check for corner, and increment by 1
-                    if ((i == 0 && j == 0) ||
-                        (i == 7 && j == 0) ||
-                        (i == 7 && j == 7) ||
-                        (i == 0 && j == 7)){   
-                        myStability += 3;
-                    }
-                    // next check for edges, don't increase stability
-                    else if ((i == 0) ||
-                         (i == 7) ||
-                         (j == 7) ||
-                         (j == 0)){
-                        myStability++;
-                    }
-                    // unstable node, don't change stability
-                    else{
-                        continue;
-                    }
+             for (int j = 0; j < 8; j++){
+                if(next_state[i][j] == 0){
+                    continue;
                 }
-                // next adjust opponent stability
-                else if (next_state[i][j] == opponent){
-                    // first check for corner, and increment by 3
-                    if ((i == 0 && j == 0) ||
-                        (i == 7 && j == 0) ||
-                        (i == 7 && j == 7) ||
-                        (i == 0 && j == 7)){   
-                        opponentStability += 3;
-                    }
-                    // next check for edges, increase stability by 1
-                    else if ((i == 0) ||
-                         (i == 7) ||
-                         (j == 7) ||
-                         (j == 0)){
-                        opponentStability++;
-                    }
-                    // unstable node, don't change stability
-                    else{
-                        continue;
-                    }
+                int stability = DiagnalHorizontalVertialIndexes(me, i, j, next_state);
+                if(next_state[i][j] == me){
+                    myStability += stability;
+                }else{
+                    opponentStability += stability;
                 }
+             }
+        }
+        if ( myStability + opponent != 0){
+            int stabilityHueristic = 100 * (myStability - opponentStability) / (myStability + opponentStability);
+            return stabilityHueristic;
+        }
+        return 0;
+    }
+
+    //stability of playernumber is 1 if stable, 0 if slightly unstable, and -1 if totally unstable
+    private int DiagnalHorizontalVertialIndexes(int playerNum, int checki, int checkj, int state[][]){
+        int otherPlayer;
+        if(playerNum == 1){
+            otherPlayer = 2;
+        }else{
+            otherPlayer = 1;
+        }
+
+        int stability = 0;
+        int unstabilityFactor = 1;
+        int oneSideIndex = -1;
+        int otherSideIndex = -1;
+        int oneSideValue;
+        int otherSideValue;
+        for(int i = checki + 1; i < 8; i++){
+            if(state[i][checkj] != playerNum){
+                oneSideIndex = i;
+                break;
             }
         }
-        return myStability - opponentStability;
+        for(int i = checki - 1; i >= 0; i--){
+            if(state[i][checkj] != playerNum){
+                otherSideIndex = i;
+                break;
+            }
+        }  
+        if(oneSideIndex != -1 && otherSideIndex != -1){
+            oneSideValue = state[oneSideIndex][checkj];
+            otherSideValue = state[otherSideIndex][checkj];
+            if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
+                //unstable
+                stability = stability - unstabilityFactor;
+            }
+        }
+        else{
+            //stable
+        }
+
+        oneSideIndex = -1;
+        otherSideIndex = -1;
+        for(int j = checkj + 1; j < 8; j++){
+            if(state[checki][j] != playerNum){
+                oneSideIndex = j;
+                break;
+            }
+
+        }
+        for(int j = checkj - 1; j > 0; j--){
+            if(state[checki][j] != playerNum){
+                otherSideIndex = j;
+                break;
+            }
+
+        }
+        if(oneSideIndex != -1 && otherSideIndex != -1){
+            oneSideValue = state[oneSideIndex][checkj];
+            otherSideValue = state[otherSideIndex][checkj];
+            if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
+                //unstable
+                stability = stability - unstabilityFactor;
+            }
+        } 
+        else{
+            //stable
+        }
+
+        int index = 0;
+        oneSideIndex = -1;
+        otherSideIndex = -1;
+        int oneSideIndex2 = -1;
+        int otherSideIndex2 = -1;
+        while((checki + index < 8) && (checkj + index < 8)){
+            if(state[checki + index][checkj + index] != playerNum){
+                oneSideIndex = checki + index;
+                oneSideIndex2 = checkj + index;
+                break;
+            }
+            index++;
+        }
+        index = 0;
+        while((checki - index > -1) && (checkj - index > -1)){
+            if(state[checki - index][checkj - index] != playerNum){
+                otherSideIndex = checki + index;
+                otherSideIndex2 = checkj + index;
+                break;
+            }
+            index++;
+        }
+        if(oneSideIndex != -1 && otherSideIndex != -1){
+            //stable
+            oneSideValue = state[oneSideIndex][oneSideIndex2];
+            otherSideValue = state[otherSideIndex][otherSideIndex2];
+            if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
+                //unstable
+                stability = stability - unstabilityFactor;
+            }
+        }
+        else{
+            //stable
+        }
+
+
+        index = 0;
+        oneSideIndex = -1;
+        otherSideIndex = -1;
+        oneSideIndex2 = -1;
+        otherSideIndex2 = -1;
+        while((checki + index < 8) && (checkj - index > -1)){
+            if(state[checki + index][checkj - index] != playerNum){
+                oneSideIndex = checki + index;
+                oneSideIndex2 = checkj + index;
+                break;
+            }
+            index++;
+        }
+        index = 0;
+        while((checki - index > -1) && (checkj + index < 8)){
+            if(state[checki - index][checkj + index] != playerNum){
+                otherSideIndex = checki + index;
+                otherSideIndex2 = checkj + index;
+                break;
+            }
+            index++;
+        }
+        if(oneSideIndex != -1 && otherSideIndex != -1){
+            //stable
+            oneSideValue = state[oneSideIndex][oneSideIndex2];
+            otherSideValue = state[otherSideIndex][otherSideIndex2];
+            if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
+                //unstable
+                stability = stability - unstabilityFactor;
+            }
+        }
+        else{
+            //stable
+        }
+
+        //stability is 1 if stable, 0 if sumwhat unstable, and -1 if totally unstable
+        if(stability == 0){
+            return 1;
+        }
+        if(stability <= -2){
+            return -1;
+        }
+        return 0;
+
     }
+
+    // private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+    //     // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
+    //     // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
+    //     int myStability = 0;
+    //     int opponentStability = 0;
+    //     // simulate taking the turn listed
+    //     int next_state[][] = FlipTiles(turn, move, current_state);
+    //     for (int i = 0; i < 8; i++){
+    //         for (int j = 0; j < 8; j++){
+    //             // first adjust my stability
+    //             if (next_state[i][j] == me){
+    //                 // first check for corner, and increment by 1
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     myStability += 3;
+    //                 }
+    //                 // next check for edges, don't increase stability
+    //                 else if ((i == 0) ||
+    //                      (i == 7) ||
+    //                      (j == 7) ||
+    //                      (j == 0)){
+    //                     myStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //             // next adjust opponent stability
+    //             else if (next_state[i][j] == opponent){
+    //                 // first check for corner, and increment by 3
+    //                 if ((i == 0 && j == 0) ||
+    //                     (i == 7 && j == 0) ||
+    //                     (i == 7 && j == 7) ||
+    //                     (i == 0 && j == 7)){   
+    //                     opponentStability += 3;
+    //                 }
+    //                 // next check for edges, increase stability by 1
+    //                 else if ((i == 0) ||
+    //                      (i == 7) ||
+    //                      (j == 7) ||
+    //                      (j == 0)){
+    //                     opponentStability++;
+    //                 }
+    //                 // unstable node, don't change stability
+    //                 else{
+    //                     continue;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return myStability - opponentStability;
+    // }
 
     public int HeuristicFuntion(int me, int opponent, int turn, int[] move, int current_state[][]){
         // System.out.println("\t\t--- Heuristic Function ---");
@@ -470,10 +645,12 @@ class FinalReversi {
 
         // Simple Heuristic funciton only looking at corner parity
         // didn't even get a single corner vs MCTS
-        int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
+        // int HeuristicValue = CornerParity(me, opponent, turn, move, current_state);
 
         // Record vs MCTS easy: 1-3 (But still looked worse than Jiminy Cricket)
         // int HeuristicValue = 3 * CoinParity(me, opponent, turn, move, current_state) +  15 * CornerParity(me, opponent, turn, move, current_state) + 1 * MobilityParity(me, opponent, turn, move, current_state);
+
+        int HeuristicValue =  StabilityMeasure(me, opponent, turn, move, current_state);
 
         return HeuristicValue;
     }
