@@ -35,12 +35,19 @@ class FinalReversi {
 
     Instant startMove;
     Double timeLeft;
+
+    Phase currentPhase = Phase.Early;
     
+    enum Phase {
+        Early,
+        Mid,
+        End
+    }
     
     // main function that (1) establishes a connection with the server, and then plays whenever it is this player's turn
     public FinalReversi(int _me, String host) {
 
-        System.out.println("this is proof that it compiled 1234567");
+        //System.out.println("this is proof that it compiled 1234567");
 
         me = _me;
         // Simple logic to determine which player is the player vs opponent
@@ -81,7 +88,7 @@ class FinalReversi {
                 
                 String sel = validMoves[myMove] / 8 + "\n" + validMoves[myMove] % 8;
                 
-                System.out.println("Selection: " + validMoves[myMove] / 8 + ", " + validMoves[myMove] % 8);
+                //System.out.println("Selection: " + validMoves[myMove] / 8 + ", " + validMoves[myMove] % 8);
                 
                 sout.println(sel);
             }
@@ -153,6 +160,20 @@ class FinalReversi {
             //         myMove = moves.indexOf(move);
             //     }
             // }
+            System.out.println("Round number: " + round);
+
+            if (round <= 16){
+                currentPhase = Phase.Early;
+                System.out.println("Early game");
+            }
+            else if (round <= 48){
+                currentPhase = Phase.Mid;
+                System.out.println("Mid game");
+            }
+            else{
+                currentPhase = Phase.End;
+                System.out.println("End game");
+            }
 
             // Make a copy of the state to pass into the function
             int current_state[][] = CopyState(state);
@@ -216,7 +237,7 @@ class FinalReversi {
             currentPlayer = opponent;
         }
 
-        System.out.print("At depth = " + Integer.toString(depth) + " maximize is ");
+        //System.out.print("At depth = " + Integer.toString(depth) + " maximize is ");
         // System.out.print(maximize);
         // System.out.print("\n");
         int value = NEG_INF; // value of the current move, either comes from the heuristic value (if at the base depth), or the selected node beneath
@@ -248,7 +269,7 @@ class FinalReversi {
                     // System.out.println("\tNot the best move... Moving on.");
                 }
             }
-            System.out.println("Value of best move: " + bestMove.get(2));
+            //System.out.println("Value of best move: " + bestMove.get(2));
             return bestMove;
         }
         // Not the base case yet
@@ -296,7 +317,7 @@ class FinalReversi {
                     // System.out.println("\tPruned that whole branch at depth " + Integer.toString(depth) + " which was considering move " + Integer.toString(move[0]) + " " + Integer.toString(move[0]));
                 }
             }
-            System.out.println("Value of best move: " + bestMove.get(2));
+            // System.out.println("Value of best move: " + bestMove.get(2));
             return new ArrayList<Integer>(Arrays.asList(alpha, beta, bestMove.get(2), bestMove.get(3), bestMove.get(4)));
         }
     }
@@ -688,8 +709,41 @@ class FinalReversi {
         //int HeuristicValue =  StabilityMeasure(me, opponent, turn, move, current_state);
 
         // Heuristic based on corners and corner closeness
-        int HeuristicValue = 25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 380 * -13 * CornerCloseness(me, opponent, turn, move, current_state) + 50 * CoinParity(me, opponent, turn, move, current_state) + 78 * MobilityParity(me, opponent, turn, move, current_state);
+        // int HeuristicValue = 25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 380 * -13 * CornerCloseness(me, opponent, turn, move, current_state) + 50 * CoinParity(me, opponent, turn, move, current_state) + 78 * MobilityParity(me, opponent, turn, move, current_state);
 
+        // Heuristic based on the current phase of the game
+        int HeuristicValue = 0;
+        // Early-game
+        if (currentPhase == Phase.Early){
+            HeuristicValue = 
+            78 * MobilityParity(me, opponent, turn, move, current_state) + 
+            25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 
+            380 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
+            0 * CoinParity(me, opponent, turn, move, current_state)+
+            0 * StabilityMeasure(me, opponent, turn, move, current_state);
+            // System.out.println("Early Heuristic");
+        }
+        // Mid-game
+        else if (currentPhase == Phase.Mid){
+            HeuristicValue = 
+            0 * MobilityParity(me, opponent, turn, move, current_state) + 
+            25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 
+            380 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
+            0 * CoinParity(me, opponent, turn, move, current_state)+
+            0 * StabilityMeasure(me, opponent, turn, move, current_state);
+            // System.out.println("Mid Heuristic");
+
+        }
+        // End-game Todo: relate of depth
+        else{
+            HeuristicValue = 
+            0 * MobilityParity(me, opponent, turn, move, current_state) + 
+            0 * CornerParity(me, opponent, turn, move, current_state) + 
+            0 * CornerCloseness(me, opponent, turn, move, current_state)+
+            1 * CoinParity(me, opponent, turn, move, current_state)+
+            0 * StabilityMeasure(me, opponent, turn, move, current_state);
+            // System.out.println("End Heuristic");
+        }
         return HeuristicValue;
     }
 
