@@ -34,6 +34,8 @@ class FinalReversi {
     int state[][] = new int[8][8]; // state[0][0] is the bottom left corner of the board (on the GUI)
     int turn = -1;
     int round;
+    int midPhaseStart = 17;
+    int endPhaseStart = 57;
     
     int validMoves[] = new int[64];
     int numValidMoves;
@@ -112,13 +114,63 @@ class FinalReversi {
         Long timeLeft = startMoveTimeMilli - passedTime;
         // System.out.println("true passed time  " + Long.toString(timeLeft));
         // if ((Long)(timeLeft * 1000) - PassedTime < 2000
-        if(timeLeft < 2000){ // less than 2 seconds
-            MAX_DEPTH = 6;
-            // System.out.println("set depth to two at time: " + Double.toString(t2));
+        if(currentPhase == Phase.Early){
+            if (timeLeft >= 150000 && round <= (midPhaseStart-8)){
+                MAX_DEPTH = 8;
+                // System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 143000 && round <= (midPhaseStart-6)){
+                MAX_DEPTH = 6;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 140000 && round <= (midPhaseStart-4)){
+                MAX_DEPTH = 4;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else{
+                MAX_DEPTH = 2;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
         }
-        else if(timeLeft < 10000){
-            MAX_DEPTH = 2;
+        else if (currentPhase == Phase.Mid){
+            if (timeLeft >= 20000 && round <= (endPhaseStart-8)){
+                MAX_DEPTH = 8;
+                // System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 10000 && round <= (endPhaseStart-6)){
+                MAX_DEPTH = 6;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 2000 && round <= (endPhaseStart-4)){
+                MAX_DEPTH = 4;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else{
+                MAX_DEPTH = 2;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
         }
+        else{
+            if (timeLeft >= 10000){
+                MAX_DEPTH = 8;
+                // System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 2000){
+                MAX_DEPTH = 6;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else{
+                MAX_DEPTH = 2;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+        }
+        // if(timeLeft < 2000){ // less than 2 seconds
+        //     MAX_DEPTH = 6;
+        //     // System.out.println("set depth to two at time: " + Double.toString(t2));
+        // }
+        // else if(timeLeft < 10000){
+        //     MAX_DEPTH = 2;
+        // }
     }
     
     // You should modify this function
@@ -172,7 +224,7 @@ class FinalReversi {
                 System.out.println("Early game");
                 MAX_DEPTH = MAX_DEPTH_early;
             }
-            else if (round <= 48){
+            else if (round <= 56){
                 currentPhase = Phase.Mid;
                 System.out.println("Mid game");
                 MAX_DEPTH = MAX_DEPTH_mid;
@@ -249,7 +301,7 @@ class FinalReversi {
         //System.out.print("At depth = " + Integer.toString(depth) + " maximize is ");
         // System.out.print(maximize);
         // System.out.print("\n");
-        int value = NEG_INF; // value of the current move, either comes from the heuristic value (if at the base depth), or the selected node beneath
+        int value; // value of the current move, either comes from the heuristic value (if at the base depth), or the selected node beneath
         // base case
         if (MAX_DEPTH <= depth){
             ArrayList<int[]> possibleMoves = GetMovesFromState(current_state, currentPlayer);
@@ -520,7 +572,7 @@ class FinalReversi {
         return myPossibleMoves-opponentPossibleMoves;
     }
 
-    private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
         int myStability = 0;
         int opponentStability = 0;
         int next_state[][] = FlipTiles(turn, move, current_state);
@@ -529,23 +581,29 @@ class FinalReversi {
                 if(next_state[i][j] == 0){
                     continue;
                 }
-                int stability = DiagnalHorizontalVertialIndexes(me, i, j, next_state);
-                if(next_state[i][j] == me){
-                    myStability += stability;
-                }else{
-                    opponentStability += stability;
+                else if(next_state[i][j] == me){
+                    myStability += StabilityAtTile(me, i, j, next_state);
+                }
+                else if(next_state[i][j] == opponent){
+                    opponentStability += StabilityAtTile(opponent, i, j, next_state);
                 }
              }
         }
-        if ( myStability + opponent != 0){
+        if ( myStability + opponentStability != 0){
+            // System.out.println("myStability is " + Integer.toString(myStability) + " and " + Integer.toString(opponentStability) + "are different");
             int stabilityHueristic = 100 * (myStability - opponentStability) / (myStability + opponentStability);
             return stabilityHueristic;
         }
+        // System.out.println("myStability is " + Integer.toString(myStability) + " and " + Integer.toString(opponentStability) + " error tried to devide by zero");
         return 0;
     }
 
+    
     //stability of playernumber is 1 if stable, 0 if slightly unstable, and -1 if totally unstable
-    private int DiagnalHorizontalVertialIndexes(int playerNum, int checki, int checkj, int state[][]){
+    private int StabilityAtTile(int playerNum, int checki, int checkj, int state[][]){
+        int STABLE_VALUE = 1;
+        int UNSTABLE_VALUE = -1;
+        int SEMI_STABLE_VALUE = 0;
         int otherPlayer;
         if(playerNum == 1){
             otherPlayer = 2;
@@ -559,29 +617,37 @@ class FinalReversi {
         int otherSideIndex = -1;
         int oneSideValue;
         int otherSideValue;
+        // System.out.println();
         for(int i = checki + 1; i < 8; i++){
             if(state[i][checkj] != playerNum){
                 oneSideIndex = i;
+                // System.out.println("oneSideIndex = " + Integer.toString(oneSideIndex));
                 break;
             }
         }
         for(int i = checki - 1; i >= 0; i--){
             if(state[i][checkj] != playerNum){
                 otherSideIndex = i;
+                // System.out.println("otherSideIndex= " + Integer.toString(otherSideIndex));
                 break;
             }
-        }  
+        } 
+        if(oneSideIndex == -1 || otherSideIndex == -1) {
+            if(checkj == 0 || checkj == 7){ //edge
+                return STABLE_VALUE;
+            }
+        }
         if(oneSideIndex != -1 && otherSideIndex != -1){
             oneSideValue = state[oneSideIndex][checkj];
             otherSideValue = state[otherSideIndex][checkj];
+            // System.out.println("oneSideValue was found to be equal to " + Integer.toString(oneSideValue) + " which is different than " + Integer.toString(otherSideValue));
             if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
-                //unstable
-                stability = stability - unstabilityFactor;
+                // System.out.println("above is different");
+                return UNSTABLE_VALUE;
             }
         }
-        else{
-            //stable
-        }
+
+        
 
         oneSideIndex = -1;
         otherSideIndex = -1;
@@ -592,24 +658,25 @@ class FinalReversi {
             }
 
         }
-        for(int j = checkj - 1; j > 0; j--){
+        for(int j = checkj - 1; j > -1; j--){
             if(state[checki][j] != playerNum){
                 otherSideIndex = j;
                 break;
             }
 
         }
+        if(oneSideIndex == -1 || otherSideIndex == -1) {
+            if(checki == 0 || checki == 7){ //edge
+                return STABLE_VALUE;
+            }
+        }
         if(oneSideIndex != -1 && otherSideIndex != -1){
-            oneSideValue = state[oneSideIndex][checkj];
-            otherSideValue = state[otherSideIndex][checkj];
+            oneSideValue = state[checki][oneSideIndex];
+            otherSideValue = state[checki][otherSideIndex];
             if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
-                //unstable
-                stability = stability - unstabilityFactor;
+                return UNSTABLE_VALUE;
             }
         } 
-        else{
-            //stable
-        }
 
         int index = 0;
         oneSideIndex = -1;
@@ -627,8 +694,8 @@ class FinalReversi {
         index = 0;
         while((checki - index > -1) && (checkj - index > -1)){
             if(state[checki - index][checkj - index] != playerNum){
-                otherSideIndex = checki + index;
-                otherSideIndex2 = checkj + index;
+                otherSideIndex = checki - index;
+                otherSideIndex2 = checkj - index;
                 break;
             }
             index++;
@@ -638,12 +705,8 @@ class FinalReversi {
             oneSideValue = state[oneSideIndex][oneSideIndex2];
             otherSideValue = state[otherSideIndex][otherSideIndex2];
             if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
-                //unstable
-                stability = stability - unstabilityFactor;
+                return UNSTABLE_VALUE;
             }
-        }
-        else{
-            //stable
         }
 
 
@@ -655,7 +718,7 @@ class FinalReversi {
         while((checki + index < 8) && (checkj - index > -1)){
             if(state[checki + index][checkj - index] != playerNum){
                 oneSideIndex = checki + index;
-                oneSideIndex2 = checkj + index;
+                oneSideIndex2 = checkj - index;
                 break;
             }
             index++;
@@ -663,7 +726,7 @@ class FinalReversi {
         index = 0;
         while((checki - index > -1) && (checkj + index < 8)){
             if(state[checki - index][checkj + index] != playerNum){
-                otherSideIndex = checki + index;
+                otherSideIndex = checki - index;
                 otherSideIndex2 = checkj + index;
                 break;
             }
@@ -675,21 +738,11 @@ class FinalReversi {
             otherSideValue = state[otherSideIndex][otherSideIndex2];
             if((oneSideValue == 0 || otherSideValue == 0) && (oneSideValue == otherPlayer || otherSideValue == otherPlayer)){
                 //unstable
-                stability = stability - unstabilityFactor;
+                return UNSTABLE_VALUE;
             }
         }
-        else{
-            //stable
-        }
-
-        //stability is 1 if stable, 0 if sumwhat unstable, and -1 if totally unstable
-        if(stability == 0){
-            return 1;
-        }
-        if(stability <= -2){
-            return -1;
-        }
-        return 0;
+        
+        return SEMI_STABLE_VALUE;
 
     }
 
@@ -726,20 +779,20 @@ class FinalReversi {
         if (currentPhase == Phase.Early){
             HeuristicValue = 
             78 * MobilityParity(me, opponent, turn, move, current_state) + 
-            25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 
-            380 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
-            0 * CoinParity(me, opponent, turn, move, current_state)+
-            0 * StabilityMeasure(me, opponent, turn, move, current_state);
-            // System.out.println("Early Heuristic");
+            25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
+            200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
+            20 * CoinParity(me, opponent, turn, move, current_state) + 
+            20 * StabilityMeasure(me, opponent, turn, move, current_state);
+            // System.out.println("Early Heuristic");S
         }
         // Mid-game
         else if (currentPhase == Phase.Mid){
             HeuristicValue = 
             0 * MobilityParity(me, opponent, turn, move, current_state) + 
-            25 * 800 * CornerParity(me, opponent, turn, move, current_state) + 
-            380 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
-            0 * CoinParity(me, opponent, turn, move, current_state)+
-            0 * StabilityMeasure(me, opponent, turn, move, current_state);
+            25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
+            200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
+            0 * CoinParity(me, opponent, turn, move, current_state) + 
+            40 * StabilityMeasure(me, opponent, turn, move, current_state);
             // System.out.println("Mid Heuristic");
 
         }
@@ -749,8 +802,7 @@ class FinalReversi {
             0 * MobilityParity(me, opponent, turn, move, current_state) + 
             0 * CornerParity(me, opponent, turn, move, current_state) + 
             0 * CornerCloseness(me, opponent, turn, move, current_state)+
-            1 * CoinParity(me, opponent, turn, move, current_state)+
-            0 * StabilityMeasure(me, opponent, turn, move, current_state);
+            1 * CoinParity(me, opponent, turn, move, current_state);
             // System.out.println("End Heuristic");
         }
         return HeuristicValue;
