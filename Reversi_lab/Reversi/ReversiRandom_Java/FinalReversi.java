@@ -5,6 +5,8 @@ import java.lang.*;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import java.math.*;
 import java.text.*;
 import java.time.Instant;
@@ -15,7 +17,10 @@ class FinalReversi {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    int MAX_DEPTH = 8;
+    int MAX_DEPTH_early = 6;
+    int MAX_DEPTH_mid = 8;
+    int MAX_DEPTH_end = 6;
+    int MAX_DEPTH = MAX_DEPTH_early;
 
     public Socket s;
 	public BufferedReader sin;
@@ -165,14 +170,18 @@ class FinalReversi {
             if (round <= 16){
                 currentPhase = Phase.Early;
                 System.out.println("Early game");
+                MAX_DEPTH = MAX_DEPTH_early;
             }
             else if (round <= 48){
                 currentPhase = Phase.Mid;
                 System.out.println("Mid game");
+                MAX_DEPTH = MAX_DEPTH_mid;
             }
             else{
                 currentPhase = Phase.End;
+                MAX_DEPTH = MAX_DEPTH_end;
                 System.out.println("End game");
+
             }
 
             // Make a copy of the state to pass into the function
