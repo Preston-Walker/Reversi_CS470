@@ -35,6 +35,7 @@ class FinalReversi {
     int turn = -1;
     int round;
     int midPhaseStart = 17;
+    int latePhaseStart = 37;
     int endPhaseStart = 57;
     
     int validMoves[] = new int[64];
@@ -48,6 +49,7 @@ class FinalReversi {
     enum Phase {
         Early,
         Mid,
+        Late,
         End
     }
     
@@ -133,6 +135,24 @@ class FinalReversi {
             }
         }
         else if (currentPhase == Phase.Mid){
+            if (timeLeft >= 80000){
+                MAX_DEPTH = 8;
+                // System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 75000){
+                MAX_DEPTH = 6;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else if (timeLeft >= 70000){
+                MAX_DEPTH = 4;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+            else{
+                MAX_DEPTH = 2;
+                System.out.println("Depth:" + MAX_DEPTH);
+            }
+        }
+        else if (currentPhase == Phase.Late){
             if (timeLeft >= 20000 && round <= (endPhaseStart-8)){
                 MAX_DEPTH = 8;
                 // System.out.println("Depth:" + MAX_DEPTH);
@@ -788,10 +808,21 @@ private int StabilityMeasure(int me, int opponent, int turn, int[] move, int cur
         // Mid-game
         else if (currentPhase == Phase.Mid){
             HeuristicValue = 
-            0 * MobilityParity(me, opponent, turn, move, current_state) + 
+            20 * MobilityParity(me, opponent, turn, move, current_state) + 
             25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
             200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
             0 * CoinParity(me, opponent, turn, move, current_state) + 
+            40 * StabilityMeasure(me, opponent, turn, move, current_state);
+            // System.out.println("Mid Heuristic");
+
+        }
+        // Late-game
+        else if (currentPhase == Phase.Late){
+            HeuristicValue = 
+            20 * MobilityParity(me, opponent, turn, move, current_state) + 
+            25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
+            200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
+            50 * CoinParity(me, opponent, turn, move, current_state) + 
             40 * StabilityMeasure(me, opponent, turn, move, current_state);
             // System.out.println("Mid Heuristic");
 
