@@ -17,10 +17,7 @@ class FinalReversi {
     // Declare some constants to use for infinity
     final int INF = Integer.MAX_VALUE;
     final int NEG_INF = Integer.MIN_VALUE;
-    int MAX_DEPTH_early = 6;
-    int MAX_DEPTH_mid = 8;
-    int MAX_DEPTH_end = 6;
-    int MAX_DEPTH = MAX_DEPTH_early;
+    int MAX_DEPTH = 8;
 
     public Socket s;
 	public BufferedReader sin;
@@ -117,15 +114,15 @@ class FinalReversi {
         // System.out.println("true passed time  " + Long.toString(timeLeft));
         // if ((Long)(timeLeft * 1000) - PassedTime < 2000
         if(currentPhase == Phase.Early){
-            if (timeLeft >= 150000 && round <= (midPhaseStart-8)){
-                MAX_DEPTH = 8;
+            if (timeLeft >= 140000){
+                MAX_DEPTH = 10;
                 // System.out.println("Depth:" + MAX_DEPTH);
             }
-            else if (timeLeft >= 143000 && round <= (midPhaseStart-6)){
+            else if (timeLeft >= 133000){
                 MAX_DEPTH = 6;
                 System.out.println("Depth:" + MAX_DEPTH);
             }
-            else if (timeLeft >= 140000 && round <= (midPhaseStart-4)){
+            else if (timeLeft >= 130000){
                 MAX_DEPTH = 4;
                 System.out.println("Depth:" + MAX_DEPTH);
             }
@@ -239,21 +236,21 @@ class FinalReversi {
             // }
             System.out.println("Round number: " + round);
 
-            if (round <= 16){
+            if (round < midPhaseStart){
                 currentPhase = Phase.Early;
                 System.out.println("Early game");
-                MAX_DEPTH = MAX_DEPTH_early;
             }
-            else if (round <= 56){
+            else if (round < latePhaseStart){
                 currentPhase = Phase.Mid;
                 System.out.println("Mid game");
-                MAX_DEPTH = MAX_DEPTH_mid;
+            }
+            else if (round <= endPhaseStart){
+                currentPhase = Phase.Late;
+                System.out.println("Late game");
             }
             else{
                 currentPhase = Phase.End;
-                MAX_DEPTH = MAX_DEPTH_end;
                 System.out.println("End game");
-
             }
 
             // Make a copy of the state to pass into the function
@@ -592,7 +589,65 @@ class FinalReversi {
         return myPossibleMoves-opponentPossibleMoves;
     }
 
-private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
+    private int EdgeAdvantage(int me, int opponent, int turn, int[] move, int current_state[][]){
+        // I'm defining tiles in the middle to be unstable, tiles on the edge to be semi-stable, and tiles in a corner to be stable
+        // yes, it's a somewhat simplistic measure of stability, but I think it captures the essence of the idea
+        int myStability = 0;
+        int opponentStability = 0;
+        // simulate taking the turn listed
+        int next_state[][] = FlipTiles(turn, move, current_state);
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                // first adjust my stability
+                if (next_state[i][j] == me){
+                    // first check for corner, and increment by 1
+                    if ((i == 0 && j == 0) ||
+                        (i == 7 && j == 0) ||
+                        (i == 7 && j == 7) ||
+                        (i == 0 && j == 7)){   
+                        myStability += 3;
+                    }
+                    // next check for edges, don't increase stability
+                    else if ((i == 0) ||
+                         (i == 7) ||
+                         (j == 7) ||
+                         (j == 0)){
+                        myStability++;
+                    }
+                    // unstable node, don't change stability
+                    else{
+                        continue;
+                    }
+                }
+                // next adjust opponent stability
+                else if (next_state[i][j] == opponent){
+                    // first check for corner, and increment by 3
+                    if ((i == 0 && j == 0) ||
+                        (i == 7 && j == 0) ||
+                        (i == 7 && j == 7) ||
+                        (i == 0 && j == 7)){   
+                        opponentStability += 3;
+                    }
+                    // next check for edges, increase stability by 1
+                    else if ((i == 0) ||
+                         (i == 7) ||
+                         (j == 7) ||
+                         (j == 0)){
+                        opponentStability++;
+                    }
+                    // unstable node, don't change stability
+                    else{
+                        continue;
+                    }
+                }
+            }
+        }
+        return myStability - opponentStability;
+    }
+
+
+
+    private int StabilityMeasure(int me, int opponent, int turn, int[] move, int current_state[][]){
         int myStability = 0;
         int opponentStability = 0;
         int next_state[][] = FlipTiles(turn, move, current_state);
@@ -802,7 +857,8 @@ private int StabilityMeasure(int me, int opponent, int turn, int[] move, int cur
             25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
             200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
             20 * CoinParity(me, opponent, turn, move, current_state) + 
-            20 * StabilityMeasure(me, opponent, turn, move, current_state);
+            20 * StabilityMeasure(me, opponent, turn, move, current_state) +
+            20 * EdgeAdvantage(me, opponent, turn, move, current_state);
             // System.out.println("Early Heuristic");S
         }
         // Mid-game
@@ -812,7 +868,8 @@ private int StabilityMeasure(int me, int opponent, int turn, int[] move, int cur
             25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
             200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
             0 * CoinParity(me, opponent, turn, move, current_state) + 
-            40 * StabilityMeasure(me, opponent, turn, move, current_state);
+            40 * StabilityMeasure(me, opponent, turn, move, current_state)+
+            80 * EdgeAdvantage(me, opponent, turn, move, current_state);
             // System.out.println("Mid Heuristic");
 
         }
@@ -823,7 +880,8 @@ private int StabilityMeasure(int me, int opponent, int turn, int[] move, int cur
             25 * 600 * CornerParity(me, opponent, turn, move, current_state) + 
             200 * -13 * CornerCloseness(me, opponent, turn, move, current_state)+
             50 * CoinParity(me, opponent, turn, move, current_state) + 
-            40 * StabilityMeasure(me, opponent, turn, move, current_state);
+            40 * StabilityMeasure(me, opponent, turn, move, current_state)+
+            5 * EdgeAdvantage(me, opponent, turn, move, current_state);
             // System.out.println("Mid Heuristic");
 
         }
@@ -833,7 +891,8 @@ private int StabilityMeasure(int me, int opponent, int turn, int[] move, int cur
             0 * MobilityParity(me, opponent, turn, move, current_state) + 
             0 * CornerParity(me, opponent, turn, move, current_state) + 
             0 * CornerCloseness(me, opponent, turn, move, current_state)+
-            1 * CoinParity(me, opponent, turn, move, current_state);
+            1 * CoinParity(me, opponent, turn, move, current_state)+
+            0 * EdgeAdvantage(me, opponent, turn, move, current_state);
             // System.out.println("End Heuristic");
         }
         return HeuristicValue;
